@@ -1,15 +1,5 @@
 from pydantic import BaseModel
 
-class UserLogin(BaseModel):
-  email: str
-  password: str
-
-class UserCreate(BaseModel):
-  name: str
-  connection: str
-  email: str
-  password: str
-
 class UserUpdate(BaseModel):
   name: str | None = None
   email: str | None = None
@@ -20,6 +10,8 @@ class User(BaseModel):
   name: str
   connection: str
   email: str
+  role: str
+  is_active: bool
 
   class Config:
     from_attributes = True

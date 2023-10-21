@@ -13,8 +13,8 @@ def get_user_by_email(db: Session, email: str):
 def get_users(db: Session, skip: int = 0, limit: int = 100):
   return db.query(userModel.User).offset(skip).limit(limit).all()
 
-def create_user(db: Session, name, connection, email, hashed_password):
-  db_user = userModel.User(name=name, connection=connection, email=email, password=hashed_password)
+def create_user(db: Session, name, connection, email, password, activation_code):
+  db_user = userModel.User(name=name, connection=connection, email=email, password=password, activation_code=activation_code)
   db.add(db_user)
   db.commit()
   db.refresh(db_user)
@@ -25,6 +25,14 @@ def update_user_basic_data(db: Session, db_user: userSchema.User, user: userSche
   for key, value in user_data.items():
     setattr(db_user, key, value)
 
+  db.add(db_user)
+  db.commit()
+  db.refresh(db_user)
+  return db_user
+
+def activate_account(db: Session, db_user: userSchema.User):
+  db_user.is_active = True
+  db_user.activation_code = None
   db.add(db_user)
   db.commit()
   db.refresh(db_user)

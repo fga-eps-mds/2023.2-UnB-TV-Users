@@ -14,3 +14,5 @@ class User(Base):
   role = Column(String, default="USER")
   email = Column(String, unique=True, index=True, nullable=False)
   password = Column(String, nullable=False)
+  is_active = Column(Boolean, default=False)
+  activation_code = Column(Integer, nullable=True)

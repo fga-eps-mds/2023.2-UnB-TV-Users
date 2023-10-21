@@ -21,13 +21,7 @@ def get_password_hash(password) -> str:
   return pwd_context.hash(password)
 
 def validate_password(password: str) -> bool:
-  return (
-    len(password) >= 8 and
-    any(ch.islower() for ch in password) and
-    any(ch.isupper() for ch in password) and
-    any(ch.isdigit() for ch in password) and
-    any(ch in "!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~" for ch in password)
-  )
+  return (len(password) == 6 and not any(not ch.isdigit() for ch in password))
 
 def create_access_token(data: dict):
   access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))

@@ -34,4 +34,9 @@ async def send_verification_code(email: str, code: int) -> JSONResponse:
   )
 
   fm = FastMail(conf)
-  await fm.send_message(message)
+  
+  try:
+    await fm.send_message(message)
+    return JSONResponse(status_code=200, content={ "status": "success" })
+  except:
+    return JSONResponse(status_code=400, content={ "status": "error" })

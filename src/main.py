@@ -1,3 +1,4 @@
+import uvicorn
 from typing import Union
 from fastapi import FastAPI
 from dotenv import load_dotenv
@@ -19,3 +20,6 @@ app = FastAPI()
 
 app.include_router(prefix="/api", router=userController.user)
 app.include_router(prefix="/api", router=authController.auth)
+
+if __name__ == '__main__':
+  uvicorn.run('main:app', reload=True)

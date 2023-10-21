@@ -29,15 +29,6 @@ def read_user_by_email(user_email: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="User not found")
   return user
 
-@user.post("/")
-def create_user(data: userSchema.UserCreate, db: Session = Depends(get_db)):
-  user = userRepository.get_user_by_email(db, data.email)
-  if user:
-    raise HTTPException(status_code=400, detail="Email already registered")
-  
-  new_user = userRepository.create_user(db, data)
-  return new_user
-
 @user.patch("/{user_id}", response_model=userSchema.User)
 def partial_update_user(user_id: int, data: userSchema.UserUpdate, db: Session = Depends(get_db)):
   db_user = userRepository.get_user(db, user_id)

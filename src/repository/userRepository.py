@@ -13,8 +13,8 @@ def get_user_by_email(db: Session, email: str):
 def get_users(db: Session, skip: int = 0, limit: int = 100):
   return db.query(userModel.User).offset(skip).limit(limit).all()
 
-def create_user(db: Session, user: userSchema.UserCreate):
-  db_user = userModel.User(email=user.email, hashed_password=user.password)
+def create_user(db: Session, email, hashed_password):
+  db_user = userModel.User(email=email, password=hashed_password)
   db.add(db_user)
   db.commit()
   db.refresh(db_user)

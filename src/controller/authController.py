@@ -1,6 +1,6 @@
 import os
 from fastapi import APIRouter, HTTPException, Response, status, Depends
-from utils import security
+from utils import security, enumeration
 from database import get_db
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
@@ -15,17 +15,23 @@ auth = APIRouter(
 
 @auth.post('/register')
 def register(data: userSchema.UserCreate, db: Session = Depends(get_db)):
+  # Verifica se connection é valido
+  if (not enumeration.UserConnection.has_value(data.connection)):
+    raise HTTPException(status_code=400, detail=errors.INVALID_CONNECTION)
+
+  # Validação de senha
   is_valid = security.validate_password(data.password.strip()) 
   if (not is_valid):
     raise HTTPException(status_code=400, detail=errors.INVALID_PASSWORD)
 
+  # Verifica se já existe um usuário com o email informado
   user = userRepository.get_user_by_email(db, data.email)
   if user:
     raise HTTPException(status_code=400, detail=errors.EMAIL_ALREADY_REGISTERED)
   
   hashed_password = security.get_password_hash(data.password)
 
-  new_user = userRepository.create_user(db, data.email, hashed_password)
+  new_user = userRepository.create_user(db, data.name, data.connection, data.email, hashed_password)
   return new_user
 
 @auth.post("/login", response_model=authSchema.Token)

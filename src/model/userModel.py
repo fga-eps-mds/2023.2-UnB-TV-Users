@@ -9,6 +9,8 @@ class User(Base):
   __tablename__ = "users"
 
   id = Column(Integer, primary_key=True, index=True)
-  email = Column(String, unique=True, index=True)
-  password = Column(String)
-  is_active = Column(Boolean, default=True)
+  name = Column(String, nullable=False)
+  connection = Column(String, nullable=False) # aluno, professor, comunidade acadêmica ou externo
+  role = Column(String, default="USER")
+  email = Column(String, unique=True, index=True, nullable=False)
+  password = Column(String, nullable=False)

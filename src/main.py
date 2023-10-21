@@ -1,8 +1,13 @@
 from typing import Union
 from fastapi import FastAPI
 from dotenv import load_dotenv
+from utils import dotenv
 
-load_dotenv()
+try:
+  load_dotenv()
+  dotenv.validate_dotenv()
+except EnvironmentError as e:
+  raise Exception(e)
 
 from controller import userController, authController
 from database import SessionLocal, engine 

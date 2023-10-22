@@ -5,7 +5,6 @@ from database import get_db
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from constants import errorMessages
-from random import randint
 from starlette.responses import JSONResponse
 
 from domain import userSchema, authSchema
@@ -33,7 +32,7 @@ async def register(data: authSchema.UserCreate, db: Session = Depends(get_db)):
   
   hashed_password = security.get_password_hash(data.password)
   
-  activation_code = randint(100000, 999999)
+  activation_code = security.generate_six_digit_number_code()
 
   new_user = userRepository.create_user(db, name=data.name, connection=data.connection, email=data.email, password=hashed_password, activation_code=activation_code)
   
@@ -87,3 +86,56 @@ async def validate_account(data: authSchema.AccountValidation, db: Session = Dep
 
   userRepository.activate_account(db, user)
   return JSONResponse(status_code=200, content={ "status": "success" })
+
+@auth.post('/reset-password/request')
+async def request_password_(data: authSchema.ResetPasswordRequest, db: Session = Depends(get_db)):
+  user = userRepository.get_user_by_email(db, data.email)
+  if not user:
+    raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
+
+  if not user.is_active:
+    raise HTTPException(status_code=404, detail=errorMessages.ACCOUNT_IS_NOT_ACTIVE)
+  
+  code = security.generate_six_digit_number_code()
+
+  try:
+    userRepository.set_user_reset_pass_code(db, user, code)
+    await send_mail.send_reset_password_code(data.email, code)
+
+    return JSONResponse(status_code=200, content={ "status": "success" })
+  except:
+    return JSONResponse(status_code=400, content={ "status": "error" })
+
+@auth.post('/reset-password/verify')
+def verify_reset_code(data: authSchema.ResetPasswordVerify, db: Session = Depends(get_db)):
+  user = userRepository.get_user_by_email(db, data.email)
+  if not user:
+    raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
+  
+  if not user.password_reset_code:
+    raise HTTPException(status_code=404, detail=errorMessages.NO_RESET_PASSWORD_CODE)
+
+  if user.password_reset_code != data.code:
+    raise HTTPException(status_code=400, detail=errorMessages.INVALID_RESET_PASSWORD_CODE)
+
+  return JSONResponse(status_code=200, content={ "status": "success" })
+
+@auth.patch('/reset-password/change', response_model=userSchema.User)
+def update_user_password(data: authSchema.ResetPasswordUpdate, db: Session = Depends(get_db)):
+  user = userRepository.get_user_by_email(db, data.email)
+  if not user:
+    raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
+  
+  if data.password and not security.validate_password(data.password):
+    raise HTTPException(status_code=400, detail=errorMessages.INVALID_PASSWORD)
+
+  if not user.password_reset_code:
+    raise HTTPException(status_code=401, detail=errorMessages.INVALID_REQUEST)
+    
+  if data.code != user.password_reset_code:
+    raise HTTPException(status_code=400, detail=errorMessages.INVALID_RESET_PASSWORD_CODE)
+    
+  hashed_password = security.get_password_hash(data.password)
+  updated_user = userRepository.update_password(db, user, hashed_password)
+
+  return updated_user

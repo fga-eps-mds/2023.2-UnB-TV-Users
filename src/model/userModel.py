@@ -16,3 +16,4 @@ class User(Base):
   password = Column(String, nullable=False)
   is_active = Column(Boolean, default=False)
   activation_code = Column(Integer, nullable=True)
+  password_reset_code = Column(Integer, nullable=True)

@@ -20,7 +20,7 @@ def create_user(db: Session, name, connection, email, password, activation_code)
   db.refresh(db_user)
   return db_user
 
-def update_user_basic_data(db: Session, db_user: userSchema.User, user: userSchema.UserUpdate):
+def update_user(db: Session, db_user: userSchema.User, user: userSchema.UserUpdate):
   user_data = user.dict(exclude_unset=True)
   for key, value in user_data.items():
     setattr(db_user, key, value)
@@ -30,9 +30,25 @@ def update_user_basic_data(db: Session, db_user: userSchema.User, user: userSche
   db.refresh(db_user)
   return db_user
 
+def update_password(db: Session, db_user: userSchema.User, new_password: str):
+  db_user.password = new_password
+  db_user.password_reset_code = None
+
+  db.add(db_user)
+  db.commit()
+  db.refresh(db_user)
+  return db_user
+
 def activate_account(db: Session, db_user: userSchema.User):
   db_user.is_active = True
   db_user.activation_code = None
+  db.add(db_user)
+  db.commit()
+  db.refresh(db_user)
+  return db_user
+
+def set_user_reset_pass_code(db: Session, db_user: userSchema.User, code: int):
+  db_user.password_reset_code = code
   db.add(db_user)
   db.commit()
   db.refresh(db_user)

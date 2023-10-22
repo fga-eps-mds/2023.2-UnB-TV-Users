@@ -20,3 +20,15 @@ class SendNewCode(BaseModel):
 class AccountValidation(BaseModel):
   email: str
   code: int
+
+class ResetPasswordRequest(BaseModel):
+  email: str
+
+class ResetPasswordVerify(BaseModel):
+  email: str
+  code: int
+
+class ResetPasswordUpdate(BaseModel):
+  email: str
+  password: str
+  code: int

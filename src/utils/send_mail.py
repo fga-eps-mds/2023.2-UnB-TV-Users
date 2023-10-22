@@ -24,10 +24,31 @@ conf = ConnectionConfig(
 )
 
 async def send_verification_code(email: str, code: int) -> JSONResponse:
-  html = f"<p>Seja bem vindo ao UnB-TV! Para confirmar a criação da sua conta utilize o código: {code}</p>"
+  html = f"<p>Seja bem vindo ao UnB-TV! Para confirmar a criação da sua conta utilize o código <strong>{code}</strong></p>"
 
   message = MessageSchema(
     subject="Confirme a criação da sua conta",
+    recipients=[email],
+    body=html,
+    subtype=MessageType.html
+  )
+
+  fm = FastMail(conf)
+  
+  try:
+    await fm.send_message(message)
+    return JSONResponse(status_code=200, content={ "status": "success" })
+  except:
+    return JSONResponse(status_code=400, content={ "status": "error" })
+
+async def send_reset_password_code(email: str, code: int) -> JSONResponse:
+  html = f"""
+    <p>Foi feita uma solicitação de troca de senha. Caso você tenha feito essa solicitação, utilize o código <strong>{code}</strong para trocar a sua senha.</p>
+    <p>Caso você não tenha feito essa solicitação, por favor ignore este email</p>
+  """
+
+  message = MessageSchema(
+    subject="Confirme a troca da sua senha",
     recipients=[email],
     body=html,
     subtype=MessageType.html

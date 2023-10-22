@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi.security import OAuth2PasswordBearer
 from constants import errorMessages
+from random import randint
 
 SECRET_KEY = os.getenv("SECRET")
 ALGORITHM = os.getenv("ALGORITHM")
@@ -42,3 +43,6 @@ def verify_token(token: str = Depends(oauth2_scheme)):
     return payload
   except JWTError:
     raise HTTPException(status_code=401, detail=errorMessages.INVALID_TOKEN)
+
+def generate_six_digit_number_code():
+  return randint(100000, 999999)

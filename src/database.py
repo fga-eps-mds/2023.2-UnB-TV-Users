@@ -1,14 +1,11 @@
-# Referencia: https://fastapi.tiangolo.com/tutorial/sql-databases/#create-the-sqlalchemy-parts
-
+import os, sys
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./users.db"
-# SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
+def get_uri():
+  return os.getenv("TEST_DATABASE_URI") if "pytest" in sys.modules else os.getenv("DATABASE_URI")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-
+engine = create_engine(get_uri())
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

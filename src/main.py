@@ -1,10 +1,15 @@
 import os
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from src.domain.models.google import GoogleSSO
 from dotenv import load_dotenv
 from src.domain.models.base import DiscoveryDocument, OpenID
 from src.domain.models.facebook import create_provider
 from typing import Any, Dict
+from sqlalchemy.sql import insert
+from src.infrastructure.repositories.userRepository import create_user_from_model
+from src.database import get_db
+from src.application.userSchema import User
+from sqlalchemy.orm import Session
 
 load_dotenv()
 
@@ -19,21 +24,26 @@ app = FastAPI()
 sso = GoogleSSO(
     client_id=CLIENT_ID,
     client_secret=CLIENT_SECRET,
-    redirect_uri="http://localhost:5000/auth/callback/google",
+    redirect_uri="http://localhost:5000/auth/callback",
     allow_insecure_http=True,
 )
 
 @app.get("/auth/login")
 async def auth_init():
+    """Initialize auth and redirect"""
     with sso:
         return await sso.get_login_redirect(params={"prompt": "consent", "access_type": "offline"})
 
-@app.get("/auth/callback/callback/google")
+
+@app.get("/auth/callback")
 async def auth_callback(request: Request):
+    """Verify login"""
     with sso:
         user = await sso.verify_and_process(request)
-    return user
+        db: Session = Depends(get_db)
 
+        ew_user = create_user_from_model(db, display_name=user.display_name, email=user.email)
+    return user
 
 def convert_facebook(response: Dict[str, Any]) -> OpenID:
     """Convert user information returned by Facebook."""

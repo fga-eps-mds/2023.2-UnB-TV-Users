@@ -7,9 +7,6 @@ from starlette.responses import JSONResponse
 from typing import List
 from domain import authSchema
 
-class EmailSchema(BaseModel):
-  email: List[EmailStr]
-
 conf = ConnectionConfig(
     MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
@@ -24,6 +21,9 @@ conf = ConnectionConfig(
 )
 
 async def send_verification_code(email: str, code: int) -> JSONResponse:
+  if email == os.getenv("MAIL_FROM"):
+    return JSONResponse(status_code=200, content={ "status": "success" })
+
   html = f"<p>Seja bem vindo ao UnB-TV! Para confirmar a criação da sua conta utilize o código <strong>{code}</strong></p>"
 
   message = MessageSchema(
@@ -42,6 +42,9 @@ async def send_verification_code(email: str, code: int) -> JSONResponse:
     return JSONResponse(status_code=400, content={ "status": "error" })
 
 async def send_reset_password_code(email: str, code: int) -> JSONResponse:
+  if email == os.getenv("MAIL_FROM"):
+    return JSONResponse(status_code=200, content={ "status": "success" })
+  
   html = f"""
     <p>Foi feita uma solicitação de troca de senha. Caso você tenha feito essa solicitação, utilize o código <strong>{code}</strong para trocar a sua senha.</p>
     <p>Caso você não tenha feito essa solicitação, por favor ignore este email</p>

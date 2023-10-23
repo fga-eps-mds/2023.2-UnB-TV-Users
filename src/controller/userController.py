@@ -40,7 +40,7 @@ def partial_update_user(user_id: int, data: userSchema.UserUpdate, db: Session =
   if not db_user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
 
-  updated_user = userRepository.update_user_basic_data(db, db_user, data)
+  updated_user = userRepository.update_user(db, db_user, data)
   return updated_user
 
 @user.delete("/{user_id}", response_model=userSchema.User)

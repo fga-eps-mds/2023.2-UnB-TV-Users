@@ -1,1 +1,6 @@
+__pycache__
+venv
+*.db
 .env
+build
+unb_tv.egg-info

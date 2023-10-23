@@ -53,7 +53,7 @@ def login(data: authSchema.UserLogin, db: Session = Depends(get_db)):
   if not user.is_active:
     raise HTTPException(status_code=401, detail=errorMessages.ACCOUNT_IS_NOT_ACTIVE)
   
-  access_token = security.create_access_token(data={"sub": user.email})
+  access_token = security.create_access_token(data={"id": user.id, "email": user.email})
 
   return JSONResponse(status_code=201, content={ "access_token": access_token, "token_type": "bearer" })
 

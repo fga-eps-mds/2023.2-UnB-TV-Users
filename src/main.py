@@ -3,6 +3,7 @@ from typing import Union
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from utils import dotenv
+import sys
 from fastapi.middleware.cors import CORSMiddleware
 
 try:
@@ -35,4 +36,6 @@ async def root():
     return { "message": "Olá =)" }
 
 if __name__ == '__main__':
-  uvicorn.run('main:app', reload=True)
+  port = sys.argv[1]
+  print(port)
+  uvicorn.run('main:app', reload=True, port=int(port), host="0.0.0.0")

@@ -1,1 +1,1 @@
-web: cd src python3 main.py
+web: python3 src/main.py

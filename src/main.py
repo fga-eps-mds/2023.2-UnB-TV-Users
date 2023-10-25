@@ -1,15 +1,15 @@
 import os
 from fastapi import FastAPI, Request, HTTPException, Depends
-from src.domain.models.google import GoogleSSO
+from src.utils.google import GoogleSSO
 from dotenv import load_dotenv
-from src.domain.models.base import DiscoveryDocument, OpenID
-from src.domain.models.facebook import create_provider
+from src.utils.base import DiscoveryDocument, OpenID
+from src.utils.facebook import create_provider
 from typing import Any, Dict
-from sqlalchemy.sql import insert
-from src.infrastructure.repositories.userRepository import create_user_from_model
-from src.database import get_db
-from src.application.userSchema import User
-from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
+
+from src.controller import userController, authController
+from src.model import userModel
+from src.database import engine
 
 load_dotenv()
 
@@ -20,6 +20,8 @@ FACEBOOK_CLIENT_ID = os.getenv("FACEBOOK_CLIENT_ID")
 FACEBOOK_CLIENT_SECRET = os.getenv("FACEBOOK_CLIENT_SECRET")
 
 app = FastAPI()
+
+userModel.Base.metadata.create_all(bind=engine)
 
 sso = GoogleSSO(
     client_id=CLIENT_ID,
@@ -40,9 +42,6 @@ async def auth_callback(request: Request):
     """Verify login"""
     with sso:
         user = await sso.verify_and_process(request)
-        db: Session = Depends(get_db)
-
-        ew_user = create_user_from_model(db, display_name=user.display_name, email=user.email)
     return user
 
 def convert_facebook(response: Dict[str, Any]) -> OpenID:
@@ -90,6 +89,19 @@ async def sso_callback(request: Request):
         "provider": user.provider,
     }
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Routers
+app.include_router(prefix="/api", router=authController.auth)
+app.include_router(prefix="/api", router=userController.user)
 
 @app.get("/")
 def read_root():

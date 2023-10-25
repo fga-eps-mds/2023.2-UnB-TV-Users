@@ -13,9 +13,9 @@ Base = declarative_base()
 def get_db():
     db = SessionLocal()
     try:
-        yield
+        yield db  # Aqui está a correção. Você deve ceder a sessão.
     except Exception as e:
         raise e
     finally:
         db.close()
-    return db
+

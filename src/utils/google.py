@@ -1,8 +1,11 @@
+"""Google SSO Login Helper
+"""
+
 from typing import Optional
 
 import httpx
 
-from src.domain.models.base import DiscoveryDocument, OpenID, SSOBase, SSOLoginError
+from fastapi_sso.sso.base import DiscoveryDocument, OpenID, SSOBase, SSOLoginError
 
 
 class GoogleSSO(SSOBase):

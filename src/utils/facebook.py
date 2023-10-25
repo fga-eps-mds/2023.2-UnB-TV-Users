@@ -5,7 +5,7 @@ with close to no code
 import logging
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Type, Union
 
-from src.domain.models.base import DiscoveryDocument, OpenID, SSOBase
+from fastapi_sso.sso.base import DiscoveryDocument, OpenID, SSOBase
 
 if TYPE_CHECKING:
     import httpx

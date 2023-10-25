@@ -1,1 +1,1 @@
-web: python3 src/main.py
+web: src.uvicorn src/main:app --host=0.0.0.0 --port=${PORT}

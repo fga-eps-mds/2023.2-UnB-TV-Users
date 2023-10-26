@@ -40,8 +40,8 @@ discovery_document: DiscoveryDocument = {
 GenericSSO = create_provider(name="facebook", discovery_document=discovery_document, response_convertor=convert_facebook)
 
 sso = GenericSSO(
-    client_id="FACEBOOK_CLIENT_ID",  # Replace with your App ID
-    client_secret="FACEBOOK_CLIENT_SECRET",  # Replace with your App Secret
+    client_id=FACEBOOK_CLIENT_ID,  # Replace with your App ID
+    client_secret=FACEBOOK_CLIENT_SECRET,  # Replace with your App Secret
     redirect_uri="http://localhost:5000/callback",
     allow_insecure_http=True
 )
@@ -75,11 +75,8 @@ async def sso_callback(request: Request, db: Session = Depends(get_db)):
         user = await get_or_create_user(user_email, user_display_name, db)
         
         return {
-            "id": user.id,
-            "picture": user.picture,
             "display_name": user.display_name,
             "email": user.email,
-            "provider": user.provider,
         }
     else:
         raise HTTPException(401, "Failed to fetch user information")

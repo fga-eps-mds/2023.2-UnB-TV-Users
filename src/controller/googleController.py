@@ -6,6 +6,7 @@ from src.repository import userRepository
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from src.database import get_db
+from src.repository.userRepository import get_or_create_user
 
 load_dotenv()
 
@@ -27,15 +28,6 @@ sso = GoogleSSO(
 google = APIRouter(
   prefix="/auth"
 )
-
-async def get_or_create_user(email: str, display_name: str, db: Session):
-
-    user = userRepository.get_user_by_email(db, email)
-    
-    if user is None:
-        user = userRepository.create_user(db, display_name=display_name, email=email)
-    
-    return user
 
 @google.get("/login")
 async def auth_init():

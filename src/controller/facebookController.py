@@ -8,6 +8,7 @@ from starlette.requests import Request
 from src.repository import userRepository
 from src.database import get_db
 from sqlalchemy.orm import Session
+from src.repository.userRepository import get_or_create_user
 
 load_dotenv()
 
@@ -52,15 +53,6 @@ async def sso_login():
     with sso:
         return await sso.get_login_redirect()
     
-async def get_or_create_user(email: str, display_name: str, db: Session):
-
-    user = userRepository.get_user_by_email(db, email)
-    
-    if user is None:
-        user = userRepository.create_user(db, display_name=display_name, email=email)
-    
-    return user
-
 @facebook.get("/callback")
 async def sso_callback(request: Request, db: Session = Depends(get_db)):
     """Process login response from Facebook and return user info."""

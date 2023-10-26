@@ -1,10 +1,13 @@
 from dotenv import load_dotenv
 import os
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Depends
 from typing import Any, Dict, Optional
 from src.utils.base import DiscoveryDocument, OpenID
 from src.utils.facebook import create_provider
 from starlette.requests import Request
+from src.repository import userRepository
+from src.database import get_db
+from sqlalchemy.orm import Session
 
 load_dotenv()
 
@@ -37,8 +40,8 @@ discovery_document: DiscoveryDocument = {
 GenericSSO = create_provider(name="facebook", discovery_document=discovery_document, response_convertor=convert_facebook)
 
 sso = GenericSSO(
-    client_id="1372492926710085",  # Replace with your App ID
-    client_secret="7ce978fbf2ab6977ad94124564fa2bc7",  # Replace with your App Secret
+    client_id="FACEBOOK_CLIENT_ID",  # Replace with your App ID
+    client_secret="FACEBOOK_CLIENT_SECRET",  # Replace with your App Secret
     redirect_uri="http://localhost:5000/callback",
     allow_insecure_http=True
 )
@@ -48,18 +51,35 @@ async def sso_login():
     """Generate login url and redirect."""
     with sso:
         return await sso.get_login_redirect()
+    
+async def get_or_create_user(email: str, display_name: str, db: Session):
+
+    user = userRepository.get_user_by_email(db, email)
+    
+    if user is None:
+        user = userRepository.create_user(db, display_name=display_name, email=email)
+    
+    return user
 
 @facebook.get("/callback")
-async def sso_callback(request: Request):
+async def sso_callback(request: Request, db: Session = Depends(get_db)):
     """Process login response from Facebook and return user info."""
+    user_data = None
     with sso:
-        user = await sso.verify_and_process(request)
-    if user is None:
+        user_data = await sso.verify_and_process(request)
+    
+    if user_data:
+        user_email = user_data.email
+        user_display_name = user_data.display_name
+        
+        user = await get_or_create_user(user_email, user_display_name, db)
+        
+        return {
+            "id": user.id,
+            "picture": user.picture,
+            "display_name": user.display_name,
+            "email": user.email,
+            "provider": user.provider,
+        }
+    else:
         raise HTTPException(401, "Failed to fetch user information")
-    return {
-        "id": user.id,
-        "picture": user.picture,
-        "display_name": user.display_name,
-        "email": user.email,
-        "provider": user.provider,
-    }

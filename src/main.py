@@ -9,19 +9,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.controller import userController, authController, googleController, facebookController
 from src.model import userModel
 from src.database import engine
+from controller import userController, authController
+from database import SessionLocal, engine 
+from model import userModel
 
-load_dotenv()
+import uvicorn
+from typing import Union
+from fastapi import FastAPI
+from dotenv import load_dotenv
+from utils import dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
-
-app = FastAPI()
+try:
+  load_dotenv()
+  dotenv.validate_dotenv()
+except EnvironmentError as e:
+  raise Exception(e)
 
 userModel.Base.metadata.create_all(bind=engine)
 
+app = FastAPI()
+  
 origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,4 +49,7 @@ app.include_router(router=facebookController.facebook)
 @app.get("/")
 def read_root():
     return {"message": "UnB-TV!"}
+
+if __name__ == '__main__':
+  uvicorn.run('main:app', reload=True)
 

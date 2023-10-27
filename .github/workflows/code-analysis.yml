@@ -1,0 +1,41 @@
+name: Testes
+on: push
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.5
+
+      - name: Creating env file
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+          cat .env
+
+      - name: Criação e ativação do env
+        run: |
+          pip install --upgrade pip
+          python3 -m venv env
+          source env/bin/activate
+
+      - name : Instala dependencias
+        run : pip install -r requirements.txt
+
+      - name: Executa Pytest
+        run: PYTHONPATH=src python -m coverage run -m pytest --continue-on-collection-errors --junitxml=./junit.xml
+
+      - name: Gera arquivos de testes no formato .xml
+        run: python3 -m coverage xml 
+      
+      - name: Executa SonarCloud Scan
+        if: ${{ always() }}
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{secrets.API_TOKEN_GITHUB}}
+          SONAR_TOKEN: ${{secrets.SONAR_TOKEN}}

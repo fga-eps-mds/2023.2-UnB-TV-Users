@@ -1,41 +1,57 @@
-name: Testes
+name: Análise de Código
 on: push
+
 jobs:
   sonarcloud:
-    name: SonarCloud
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          fetch-depth: 0
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.11.5
+          python-version: '3.11'
 
       - name: Creating env file
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
-          cat .env
+          echo "${{ vars.ENV_FILE }}" > .env
 
-      - name: Criação e ativação do env
+      - name: Setup virtual environment
         run: |
-          pip install --upgrade pip
-          python3 -m venv env
-          source env/bin/activate
+          python -m venv venv 
+          source venv/bin/activate
 
-      - name : Instala dependencias
-        run : pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
       - name: Executa Pytest
         run: PYTHONPATH=src python -m coverage run -m pytest --continue-on-collection-errors --junitxml=./junit.xml
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: localhost
+          POSTGRES_DB: postgres
+          POSTGRES_PORT: 5432
 
       - name: Gera arquivos de testes no formato .xml
         run: python3 -m coverage xml 
-      
+
       - name: Executa SonarCloud Scan
         if: ${{ always() }}
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{secrets.API_TOKEN_GITHUB}}
-          SONAR_TOKEN: ${{secrets.SONAR_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

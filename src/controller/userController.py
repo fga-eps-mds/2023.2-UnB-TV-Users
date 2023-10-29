@@ -51,3 +51,27 @@ def delete_user(user_id: int, db: Session = Depends(get_db), token: dict = Depen
 
   userRepository.delete_user(db, db_user)
   return db_user
+
+# db: sempre que tiver que alterar o banco
+@user.patch("/role/{user_id}")
+def atualiza_role(user_id: int, data: userSchema.UserUpdateRole, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
+  # Verificar se a role é valida
+  # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+  if not(enumeration.UserRole.has_value(data.role)):
+    # 400: bad request: envia dados errados, invalidos
+    # 404: not found: não encontrou
+    # 401: not authorized
+    raise HTTPException(status_code=400, detail="O individuo enviou uma role invalida")
+  
+  user = userRepository.get_user_by_email(db, email=token['email'])
+  if user.role != enumeration.UserRole.ADMIN.value:
+    raise HTTPException(status_code=401, detail=errorMessages.NO_PERMISSION)
+
+  # Verificar se o usuario existe
+  user = userRepository.get_user(db, user_id)
+  # user == None
+  if not user:
+    raise HTTPException(status_code=404, detail="Esse usuario nao existe")
+  
+  user = userRepository.update_user_role(db, db_user=user, role=data.role)
+  return user

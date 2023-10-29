@@ -13,3 +13,7 @@ class User(BaseModel):
   email: str
   role: str
   is_active: bool
+
+class UserUpdateRole(BaseModel):
+  email: str
+  role: str

@@ -48,7 +48,6 @@ testcontainers==3.7.1
 typing_extensions==4.8.0
 urllib3==2.0.7
 uvicorn==0.23.2
-uvloop==0.18.0
 watchfiles==0.21.0
 websocket-client==1.6.4
 websockets==11.0.3

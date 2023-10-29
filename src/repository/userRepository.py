@@ -30,6 +30,14 @@ def update_user(db: Session, db_user: userSchema.User, user: userSchema.UserUpda
   db.refresh(db_user)
   return db_user
 
+def update_user_role(db: Session, db_user: userSchema.User, role: str):
+  db_user.role = role
+
+  db.add(db_user)
+  db.commit()
+  db.refresh(db_user)
+  return db_user
+
 def update_password(db: Session, db_user: userSchema.User, new_password: str):
   db_user.password = new_password
   db_user.password_reset_code = None

@@ -11,8 +11,8 @@ class UserConnection(Enum):
     return value in cls._value2member_map_
   
 class UserRole(Enum):
-  ADMIN = "ADMINISTRADOR"
-  USER = "USUARIO"
+  ADMIN = "ADMIN"
+  USER = "USER"
 
   @classmethod
   def has_value(cls, value):

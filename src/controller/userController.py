@@ -1,9 +1,3 @@
-from src.constants import errorMessages
-from src.repository import userRepository
-from src.domain.repositories import userSchema, authSchema
-from src.database import get_db
-from src.utils import security
-
 from fastapi import APIRouter, HTTPException, Response, status, Depends
 from database import get_db
 from sqlalchemy.orm import Session

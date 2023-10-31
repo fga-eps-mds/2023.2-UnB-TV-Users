@@ -2,13 +2,13 @@ from dotenv import load_dotenv
 import os
 from fastapi import FastAPI, APIRouter, HTTPException, Depends
 from typing import Any, Dict, Optional
-from src.utils.base import DiscoveryDocument, OpenID
-from src.utils.facebook import create_provider
+from utils.base import DiscoveryDocument, OpenID
+from utils.facebook import create_provider
 from starlette.requests import Request
-from src.repository import userRepository
-from src.database import get_db
+from repository import userRepository
+from database import get_db
 from sqlalchemy.orm import Session
-from src.repository.userRepository import get_or_create_user
+from repository.userRepository import get_or_create_user
 
 load_dotenv()
 
@@ -62,12 +62,12 @@ async def sso_callback(request: Request, db: Session = Depends(get_db)):
     
     if user_data:
         user_email = user_data.email
-        user_display_name = user_data.display_name
+        user_name = user_data.display_name
         
-        user = await get_or_create_user(user_email, user_display_name, db)
+        user = await get_or_create_user(user_email, user_name, db)
         
         return {
-            "display_name": user.display_name,
+            "display_name": user.name,
             "email": user.email,
         }
     else:

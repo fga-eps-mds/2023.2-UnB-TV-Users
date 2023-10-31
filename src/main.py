@@ -1,15 +1,8 @@
 import os
 from fastapi import FastAPI, Request, HTTPException, Depends
 from dotenv import load_dotenv
-from src.utils.base import DiscoveryDocument, OpenID
-from src.utils.facebook import create_provider
-from typing import Any, Dict
 from fastapi.middleware.cors import CORSMiddleware
-
-from src.controller import userController, authController, googleController, facebookController
-from src.model import userModel
-from src.database import engine
-from controller import userController, authController
+from controller import userController, authController, googleController, facebookController
 from database import SessionLocal, engine 
 from model import userModel
 

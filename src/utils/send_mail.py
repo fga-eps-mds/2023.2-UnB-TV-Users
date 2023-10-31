@@ -7,6 +7,8 @@ from starlette.responses import JSONResponse
 from typing import List
 from domain import authSchema
 
+load_dotenv()
+
 conf = ConnectionConfig(
     MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),

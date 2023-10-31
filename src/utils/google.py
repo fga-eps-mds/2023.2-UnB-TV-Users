@@ -5,7 +5,7 @@ from typing import Optional
 
 import httpx
 
-from fastapi_sso.sso.base import DiscoveryDocument, OpenID, SSOBase, SSOLoginError
+from utils.base import DiscoveryDocument, OpenID, SSOBase, SSOLoginError
 
 
 class GoogleSSO(SSOBase):

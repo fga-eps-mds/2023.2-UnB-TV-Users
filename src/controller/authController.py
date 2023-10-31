@@ -1,10 +1,5 @@
 import os
 from fastapi import APIRouter, HTTPException, Response, status, Depends
-from src.database import get_db
-from src.domain.repositories import userSchema, authSchema
-from src.repository import userRepository
-from src.utils import security
-from src.constants import errorMessages
 from utils import security, enumeration, send_mail
 from database import get_db
 from sqlalchemy.orm import Session

@@ -1,12 +1,12 @@
 from dotenv import load_dotenv
 import os
-from src.utils.google import GoogleSSO
+from utils.google import GoogleSSO
 from fastapi import Request, FastAPI, APIRouter, Depends
 from src.repository import userRepository
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from src.database import get_db
-from src.repository.userRepository import get_or_create_user
+from database import get_db
+from repository.userRepository import get_or_create_user
 
 load_dotenv()
 
@@ -45,9 +45,9 @@ async def auth_callback(request: Request, db: Session = Depends(get_db)):
     
     if user_data:
             user_email = user_data.email
-            user_display_name = user_data.display_name
+            user_name = user_data.display_name
             
-            user = await get_or_create_user(user_email, user_display_name, db)
+            user = await get_or_create_user(user_email, user_name, db)
             return user
     else:
             return JSONResponse(status_code=400, content={"error": "Authentication failed"})

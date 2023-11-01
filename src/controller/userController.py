@@ -7,6 +7,7 @@ from domain import userSchema
 from repository import userRepository
 from utils import security, enumeration
 
+
 user = APIRouter(
   prefix="/users"
 )

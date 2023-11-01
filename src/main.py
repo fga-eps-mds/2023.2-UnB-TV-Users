@@ -1,5 +1,3 @@
-import os
-from fastapi import FastAPI, Request, HTTPException, Depends
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from controller import userController, authController, googleController, facebookController

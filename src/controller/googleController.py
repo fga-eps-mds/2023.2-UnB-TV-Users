@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 import os
 from utils.google import GoogleSSO
 from fastapi import Request, FastAPI, APIRouter, Depends
-from src.repository import userRepository
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from database import get_db

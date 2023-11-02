@@ -19,10 +19,6 @@ class User(BaseModel):
   role: str
   is_active: bool
 
-class UserUpdateRole(BaseModel):
-  email: str
-  role: str
-
 class UserListFilter(Filter):
   name: Optional[str] = None
   name__like: Optional[str] = None

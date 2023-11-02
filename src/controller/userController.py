@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response, status, Depends
+from fastapi import APIRouter, HTTPException, Response, status, Depends, Header
 from database import get_db
 from sqlalchemy.orm import Session
 
@@ -6,15 +6,29 @@ from constants import errorMessages
 from domain import userSchema
 from repository import userRepository
 from utils import security, enumeration
+from starlette.responses import JSONResponse
+
+from fastapi_filter import FilterDepends
+from fastapi.encoders import jsonable_encoder
 
 user = APIRouter(
   prefix="/users"
 )
 
 @user.get("/", response_model=list[userSchema.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
-  users = userRepository.get_users(db, skip=skip, limit=limit)
-  return users
+def read_users(
+  users_filter: userSchema.UserListFilter = FilterDepends(userSchema.UserListFilter),
+  db: Session = Depends(get_db), 
+  _: dict = Depends(security.verify_token),
+):
+  result = userRepository.get_users(db, users_filter)
+
+  users = result['users']
+  total = result['total']
+
+  response_content = jsonable_encoder(users)
+
+  return JSONResponse(content=response_content, headers={"X-Total-Count": str(total)})
 
 @user.get("/{user_id}", response_model=userSchema.User)
 def read_user(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):

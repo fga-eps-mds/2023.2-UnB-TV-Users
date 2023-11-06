@@ -40,6 +40,11 @@ def partial_update_user(user_id: int, data: userSchema.UserUpdate, db: Session =
   if not db_user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
 
+  if data.email:
+    user = userRepository.get_user_by_email(db, data.email)
+    if user: 
+      raise HTTPException(status_code=404, detail=errorMessages.EMAIL_ALREADY_REGISTERED)
+
   updated_user = userRepository.update_user(db, db_user, data)
   return updated_user
 

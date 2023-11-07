@@ -38,7 +38,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Executa Pytest
-        run: PYTHONPATH=src python -m coverage run -m pytest --continue-on-collection-errors --junitxml=./junit.xml
+        run: PYTHONPATH=src python -m coverage run -m pytest -s --continue-on-collection-errors --junitxml=./junit.xml --html=pytest_report.html
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

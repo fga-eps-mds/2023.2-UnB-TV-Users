@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from controller import userController, authController, googleController, facebookController
-from database import SessionLocal, engine 
+from database import SessionLocal, engine, get_db 
 from model import userModel
 
 import uvicorn

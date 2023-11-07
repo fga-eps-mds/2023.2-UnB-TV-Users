@@ -15,12 +15,13 @@ from src.model import userModel
 from src.utils import security, dotenv, send_mail
 from src.database import get_db, engine, Base
 
-valid_user_active = {"name": "NameA", "email": "valid@email.com", "connection": "COMUNIDADE", "password": "123456"}
-duplicated_user = {"name": "NameB", "email": "valid@email.com", "connection": "COMUNIDADE", "password": "123456"} 
-valid_user_not_active = {"name": "NameA", "email": "valid2@email.com", "connection": "COMUNIDADE", "password": "123456"}
-invalid_connection = {"name": "NameC", "email": "invalid@email.com", "connection": "INVALID", "password": "123456"}
-invalid_pass_length = {"name": "NameD", "email": "invalid@email.com", "connection": "COMUNIDADE", "password": "123"}
-invalid_pass = {"name": "NameE", "email": "invalid@email.com", "connection": "COMUNIDADE", "password": "123abc"}
+valid_user_active = {"name": "Forsen", "email": "valid@email.com", "connection": "COMUNIDADE", "password": "123456"}
+duplicated_user = {"name": "John", "email": "valid@email.com", "connection": "COMUNIDADE", "password": "123456"} 
+valid_user_not_active = {"name": "Peter", "email": "valid2@email.com", "connection": "COMUNIDADE", "password": "123456"}
+valid_user_to_be_deleted = {"name": "Simon", "email": "valid3@email.com", "connection": "COMUNIDADE", "password": "123456"}
+invalid_connection = {"name": "Mike", "email": "invalid@email.com", "connection": "INVALID", "password": "123456"}
+invalid_pass_length = {"name": "Victor", "email": "invalid@email.com", "connection": "COMUNIDADE", "password": "123"}
+invalid_pass = {"name": "Luisa", "email": "invalid@email.com", "connection": "COMUNIDADE", "password": "123abc"}
 
 client = TestClient(app)
 
@@ -40,6 +41,11 @@ class TestAuth:
     assert data['status'] == 'success'
     
     response = client.post("/api/auth/register", json=valid_user_not_active)
+    data = response.json()
+    assert response.status_code == 201
+    assert data['status'] == 'success'
+    
+    response = client.post("/api/auth/register", json=valid_user_to_be_deleted)
     data = response.json()
     assert response.status_code == 201
     assert data['status'] == 'success'
@@ -236,19 +242,19 @@ class TestAuth:
     assert response.status_code == 200
     assert data['message'] == 'UnB-TV!'
   
-  def test_security_generate_six_digit_number_code(self):
+  def test_security_generate_six_digit_number_code(self, setup):
     for _ in range(3):
       number = security.generate_six_digit_number_code()
       assert 100000 <= number <= 999999
       
-  def test_security_verify_token_invalid_token(self):
+  def test_security_verify_token_invalid_token(self, setup):
     with pytest.raises(HTTPException) as exc_info:
       security.verify_token("invalid_token")
 
     assert exc_info.value.status_code == 401
     assert exc_info.value.detail == errorMessages.INVALID_TOKEN
     
-  def test_utils_validate_dotenv(self):
+  def test_utils_validate_dotenv(self, setup):
     environment_secret_value = os.environ['SECRET']
     del os.environ['SECRET']
     
@@ -258,3 +264,34 @@ class TestAuth:
     assert str(exc_info.value) == "SOME ENVIRONMENT VALUES WERE NOT DEFINED (missing: SECRET)"
     
     os.environ["SECRET"] = environment_secret_value
+     
+  @pytest.mark.asyncio
+  async def test_auth_send_mail_send_verification_code_success(self, setup):
+    send_mail.fm.config.SUPPRESS_SEND = 1
+
+    with send_mail.fm.record_messages() as outbox:
+        response = await send_mail.send_verification_code(valid_user_active['email'], 123456)
+        
+        assert response.status_code == 200
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
+        assert outbox[0]['To'] == valid_user_active['email']
+        
+  @pytest.mark.asyncio
+  async def test_auth_send_reset_password_code_success(self, setup):
+    send_mail.fm.config.SUPPRESS_SEND = 1
+
+    with send_mail.fm.record_messages() as outbox:
+        response = await send_mail.send_reset_password_code(valid_user_active['email'], 123456)
+        
+        assert response.status_code == 200
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
+        assert outbox[0]['To'] == valid_user_active['email']
+
+
+
+
+
+
+    

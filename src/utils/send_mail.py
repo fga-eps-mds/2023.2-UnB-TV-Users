@@ -10,17 +10,19 @@ from domain import authSchema
 load_dotenv()
 
 conf = ConnectionConfig(
-    MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
-    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
-    MAIL_FROM = os.getenv("MAIL_FROM"),
-    MAIL_PORT = os.getenv("MAIL_PORT"),
-    MAIL_SERVER = os.getenv("MAIL_SERVER"),
-    MAIL_FROM_NAME="UNB TV",
-    MAIL_STARTTLS = True,
-    MAIL_SSL_TLS = False,
-    USE_CREDENTIALS = True,
-    VALIDATE_CERTS = True
+  MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
+  MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
+  MAIL_FROM = os.getenv("MAIL_FROM"),
+  MAIL_PORT = os.getenv("MAIL_PORT"),
+  MAIL_SERVER = os.getenv("MAIL_SERVER"),
+  MAIL_FROM_NAME="UNB TV",
+  MAIL_STARTTLS = True,
+  MAIL_SSL_TLS = False,
+  USE_CREDENTIALS = True,
+  VALIDATE_CERTS = True
 )
+
+fm = FastMail(conf)
 
 async def send_verification_code(email: str, code: int) -> JSONResponse:
   html = f"<p>Seja bem vindo ao UnB-TV! Para confirmar a criação da sua conta utilize o código <strong>{code}</strong></p>"
@@ -31,8 +33,6 @@ async def send_verification_code(email: str, code: int) -> JSONResponse:
     body=html,
     subtype=MessageType.html
   )
-
-  fm = FastMail(conf)
   
   try:
     await fm.send_message(message)
@@ -52,8 +52,6 @@ async def send_reset_password_code(email: str, code: int) -> JSONResponse:
     body=html,
     subtype=MessageType.html
   )
-
-  fm = FastMail(conf)
   
   try:
     await fm.send_message(message)

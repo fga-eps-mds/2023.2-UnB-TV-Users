@@ -34,7 +34,7 @@ async def register(data: authSchema.UserCreate, db: Session = Depends(get_db)):
   
   activation_code = security.generate_six_digit_number_code()
 
-  new_user = userRepository.create_user(db, name=data.name, connection=data.connection, email=data.email, password=hashed_password, activation_code=activation_code)
+  userRepository.create_user(db, name=data.name, connection=data.connection, email=data.email, password=hashed_password, activation_code=activation_code)
   
   res = await send_mail.send_verification_code(email=data.email, code=activation_code)
 
@@ -98,13 +98,8 @@ async def request_password_(data: authSchema.ResetPasswordRequest, db: Session =
   
   code = security.generate_six_digit_number_code()
 
-  try:
-    userRepository.set_user_reset_pass_code(db, user, code)
-    await send_mail.send_reset_password_code(data.email, code)
-
-    return JSONResponse(status_code=200, content={ "status": "success" })
-  except:
-    return JSONResponse(status_code=400, content={ "status": "error" })
+  userRepository.set_user_reset_pass_code(db, user, code)
+  await send_mail.send_reset_password_code(data.email, code)
 
 @auth.post('/reset-password/verify')
 def verify_reset_code(data: authSchema.ResetPasswordVerify, db: Session = Depends(get_db)):

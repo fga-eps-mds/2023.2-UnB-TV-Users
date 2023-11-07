@@ -5,11 +5,8 @@ from dotenv import load_dotenv
 
 from utils import dotenv
 
-try:
-  load_dotenv()
-  dotenv.validate_dotenv()
-except EnvironmentError as e:
-  raise Exception(e)
+load_dotenv()
+dotenv.validate_dotenv()
 
 from controller import userController, authController, googleController, facebookController
 from database import engine 

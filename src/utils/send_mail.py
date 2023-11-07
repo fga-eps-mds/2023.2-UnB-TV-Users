@@ -35,11 +35,8 @@ async def send_verification_code(email: str, code: int) -> JSONResponse:
 
   fm = FastMail(conf)
   
-  try:
-    await fm.send_message(message)
-    return JSONResponse(status_code=200, content={ "status": "success" })
-  except:
-    return JSONResponse(status_code=400, content={ "status": "error" })
+  await fm.send_message(message)
+  return JSONResponse(status_code=200, content={ "status": "success" })
 
 async def send_reset_password_code(email: str, code: int) -> JSONResponse:
   if email == os.getenv("MAIL_FROM"):
@@ -59,8 +56,5 @@ async def send_reset_password_code(email: str, code: int) -> JSONResponse:
 
   fm = FastMail(conf)
   
-  try:
-    await fm.send_message(message)
-    return JSONResponse(status_code=200, content={ "status": "success" })
-  except:
-    return JSONResponse(status_code=400, content={ "status": "error" })
+  await fm.send_message(message)
+  return JSONResponse(status_code=200, content={ "status": "success" })

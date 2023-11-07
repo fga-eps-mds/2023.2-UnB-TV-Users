@@ -77,7 +77,6 @@ class SSOBase:
         self.redirect_uri = redirect_uri
         self.allow_insecure_http = allow_insecure_http
         self._oauth_client: Optional[WebApplicationClient] = None
-        # TODO: Remove use_state argument and attribute
         if use_state:
             warnings.warn(
                 (

@@ -264,6 +264,18 @@ class TestAuth:
     assert str(exc_info.value) == "SOME ENVIRONMENT VALUES WERE NOT DEFINED (missing: SECRET)"
     
     os.environ["SECRET"] = environment_secret_value
+    
+  def test_auth_sso_google_callback_error(self, setup):
+    response = client.get("/auth/callback")
+    data = response.json()
+    assert response.status_code == 400
+    assert data['detail'] == "'code' parameter was not found in callback request"
+    
+  def test_auth_sso_google_login_success_load(self, setup):
+    response = client.get("/callback")
+    data = response.json()
+    assert response.status_code == 400
+    assert data['detail'] == "'code' parameter was not found in callback request"
      
   @pytest.mark.asyncio
   async def test_auth_send_mail_send_verification_code_success(self, setup):

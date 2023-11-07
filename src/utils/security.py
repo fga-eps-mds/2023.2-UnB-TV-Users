@@ -10,6 +10,7 @@ from random import randint
 SECRET_KEY = os.getenv("SECRET")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -46,3 +47,14 @@ def verify_token(token: str = Depends(oauth2_scheme)):
 
 def generate_six_digit_number_code():
   return randint(100000, 999999)
+
+def create_refresh_token(data:dict):
+  access_token_expires = timedelta(days=int(REFRESH_TOKEN_EXPIRE_DAYS))
+
+  to_encode = data.copy()
+  if access_token_expires:
+     expire = datetime.utcnow() + access_token_expires
+
+  to_encode.update({"exp": expire})
+  encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+  return encoded_jwt

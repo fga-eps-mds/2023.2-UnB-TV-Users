@@ -54,8 +54,15 @@ def login(data: authSchema.UserLogin, db: Session = Depends(get_db)):
     raise HTTPException(status_code=401, detail=errorMessages.ACCOUNT_IS_NOT_ACTIVE)
   
   access_token = security.create_access_token(data={"id": user.id, "email": user.email})
+  refresh_token = security.create_refresh_token(data={"id": user.id, "email": user.email})
 
-  return JSONResponse(status_code=201, content={ "access_token": access_token, "token_type": "bearer" })
+  return JSONResponse(status_code=201, content={ "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer" })
+
+@auth.post("/refresh", response_model=authSchema.Refresh_Token)
+def refresh_token(token:dict=Depends(security.verify_token)):
+
+  access_token=security.create_access_token(token)
+  return JSONResponse(status_code=200, content={ "access_token": access_token, "token_type": "bearer" })
 
 @auth.post('/resend-code')
 async def send_new_code(data: authSchema.SendNewCode, db: Session = Depends(get_db)):

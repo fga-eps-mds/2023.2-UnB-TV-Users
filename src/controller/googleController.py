@@ -7,9 +7,6 @@ from fastapi.responses import JSONResponse
 from database import get_db
 from repository.userRepository import get_or_create_user
 
-load_dotenv()
-
-
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")

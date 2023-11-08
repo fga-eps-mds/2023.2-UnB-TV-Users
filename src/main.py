@@ -1,21 +1,16 @@
-from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
-from controller import userController, authController, googleController, facebookController
-from database import SessionLocal, engine 
-from model import userModel
-
 import uvicorn
-from typing import Union
 from fastapi import FastAPI
-from dotenv import load_dotenv
-from utils import dotenv
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
-try:
-  load_dotenv()
-  dotenv.validate_dotenv()
-except EnvironmentError as e:
-  raise Exception(e)
+from utils import dotenv
+
+load_dotenv()
+dotenv.validate_dotenv()
+
+from controller import userController, authController, googleController, facebookController
+from database import engine 
+from model import userModel
 
 userModel.Base.metadata.create_all(bind=engine)
 
@@ -42,5 +37,5 @@ def read_root():
     return {"message": "UnB-TV!"}
 
 if __name__ == '__main__':
-  uvicorn.run('main:app', reload=True)
+  uvicorn.run('main:app', reload=True, port=8000)
 

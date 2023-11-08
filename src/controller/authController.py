@@ -101,6 +101,7 @@ async def request_password_(data: authSchema.ResetPasswordRequest, db: Session =
 
   userRepository.set_user_reset_pass_code(db, user, code)
   await send_mail.send_reset_password_code(data.email, code)
+  return JSONResponse(status_code=200, content={ "status": "success" })
 
 @auth.post('/reset-password/verify')
 async def verify_reset_code(data: authSchema.ResetPasswordVerify, db: Session = Depends(get_db)):

@@ -1,24 +1,22 @@
 import uvicorn
-from typing import Union
 from fastapi import FastAPI
-from dotenv import load_dotenv
-from utils import dotenv
-import sys
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
-try:
-  load_dotenv()
-  dotenv.validate_dotenv()
-except EnvironmentError as e:
-  raise Exception(e)
+from utils import dotenv
 
-from controller import userController, authController
-from database import SessionLocal, engine 
+load_dotenv()
+dotenv.validate_dotenv()
+
+from controller import userController, authController, googleController, facebookController
+from database import engine 
 from model import userModel
 
 userModel.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+  
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,12 +26,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(prefix="/api", router=userController.user)
+# Routers
 app.include_router(prefix="/api", router=authController.auth)
+app.include_router(prefix="/api", router=userController.user)
+app.include_router(router=googleController.google)
+app.include_router(router=facebookController.facebook)
 
 @app.get("/")
-async def root():
-    return { "message": "Olá =)" }
+def read_root():
+    return {"message": "UnB-TV!"}
 
 if __name__ == '__main__':
   port = sys.argv[1]

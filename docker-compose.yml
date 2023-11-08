@@ -1,29 +1,48 @@
-version: '3'
+version: "3.8"
 
 services:
+  app:
+    build: .
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app/
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - backend_users
 
   db:
-    image: 'postgres:alpine'
-    container_name: "db"
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_DB: users 
+    image: postgres
     volumes:
-      - "./data/postgress:/var/lib/postgresql/data/"
-    ports:
-      - "5432:5432"
-
-  api:
-    build: 
-      context: ./
-    container_name: login
-    links:
-      - db
-    ports:
-      - "8080:8080"
-
-    volumes:
-      - ./:/app
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
     environment:
-      - DEBUG=True
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    env_file:
+      - ./.env
+    restart: always
+    networks:
+      - backend_users
+    healthcheck:
+      test:
+          ["CMD-SHELL","pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}",]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  backend_users:

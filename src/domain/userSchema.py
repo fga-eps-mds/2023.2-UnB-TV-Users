@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+from typing import Union
 
 class UserUpdate(BaseModel):
   name: str | None = None

@@ -10,8 +10,6 @@ from database import get_db
 from sqlalchemy.orm import Session
 from repository.userRepository import get_or_create_user
 
-load_dotenv()
-
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 FACEBOOK_CLIENT_ID = os.getenv("FACEBOOK_CLIENT_ID")

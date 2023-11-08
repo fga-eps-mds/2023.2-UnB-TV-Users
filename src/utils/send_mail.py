@@ -7,8 +7,6 @@ from starlette.responses import JSONResponse
 from typing import List
 from domain import authSchema
 
-load_dotenv()
-
 conf = ConnectionConfig(
   MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
   MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
@@ -34,11 +32,8 @@ async def send_verification_code(email: str, code: int) -> JSONResponse:
     subtype=MessageType.html
   )
   
-  try:
-    await fm.send_message(message)
-    return JSONResponse(status_code=200, content={ "status": "success" })
-  except:
-    return JSONResponse(status_code=400, content={ "status": "error" })
+  await fm.send_message(message)
+  return JSONResponse(status_code=200, content={ "status": "success" })
 
 async def send_reset_password_code(email: str, code: int) -> JSONResponse:  
   html = f"""
@@ -53,8 +48,5 @@ async def send_reset_password_code(email: str, code: int) -> JSONResponse:
     subtype=MessageType.html
   )
   
-  try:
-    await fm.send_message(message)
-    return JSONResponse(status_code=200, content={ "status": "success" })
-  except:
-    return JSONResponse(status_code=400, content={ "status": "error" })
+  await fm.send_message(message)
+  return JSONResponse(status_code=200, content={ "status": "success" })

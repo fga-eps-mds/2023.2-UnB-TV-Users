@@ -12,10 +12,6 @@ from controller import userController, authController, googleController, faceboo
 from database import engine 
 from model import userModel
 
-from controller import userController, authController, googleController, facebookController
-from database import engine 
-from model import userModel
-
 userModel.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()

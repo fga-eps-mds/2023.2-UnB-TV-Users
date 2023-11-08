@@ -1,4 +1,4 @@
-import uvicorn
+import uvicorn, sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -37,6 +37,8 @@ def read_root():
     return {"message": "UnB-TV!"}
 
 if __name__ == '__main__':
-  port = sys.argv[1]
-  print(port)
+  port = 8000
+  if (len(sys.argv) == 2):
+    port = sys.argv[1]
+
   uvicorn.run('main:app', reload=True, port=int(port), host="0.0.0.0")

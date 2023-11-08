@@ -31,21 +31,21 @@ def read_users(
   return JSONResponse(content=response_content, headers={"X-Total-Count": str(total)})
 
 @user.get("/{user_id}", response_model=userSchema.User)
-def read_user(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
+async def read_user(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
   user = userRepository.get_user(db, user_id)
   if not user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
   return user
 
 @user.get("/email/{user_email}", response_model=userSchema.User)
-def read_user_by_email(user_email: str, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
+async def read_user_by_email(user_email: str, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
   user = userRepository.get_user_by_email(db, user_email)
   if not user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
   return user
 
 @user.patch("/{user_id}", response_model=userSchema.User)
-def partial_update_user(user_id: int, data: userSchema.UserUpdate, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
+async def partial_update_user(user_id: int, data: userSchema.UserUpdate, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
   # Validação do valor de connection
   if data.connection and not enumeration.UserConnection.has_value(data.connection):
     raise HTTPException(status_code=400, detail=errorMessages.INVALID_CONNECTION)
@@ -63,7 +63,7 @@ def partial_update_user(user_id: int, data: userSchema.UserUpdate, db: Session =
   return updated_user
 
 @user.delete("/{user_id}", response_model=userSchema.User)
-def delete_user(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
+async def delete_user(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
   db_user = userRepository.get_user(db, user_id)
   if not db_user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)

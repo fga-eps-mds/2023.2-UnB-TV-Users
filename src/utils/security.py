@@ -1,11 +1,10 @@
-import os
+import os, secrets
 from fastapi import Depends, HTTPException
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi.security import OAuth2PasswordBearer
-from constants import errorMessages
-from random import randint
+from constants import errorMessages 
 
 SECRET_KEY = os.getenv("SECRET")
 ALGORITHM = os.getenv("ALGORITHM")
@@ -29,10 +28,7 @@ def create_access_token(data: dict):
   access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
 
   to_encode = data.copy()
-  if access_token_expires:
-     expire = datetime.utcnow() + access_token_expires
-  else:
-     expire = datetime.utcnow() + timedelta(minutes=15)
+  expire = datetime.utcnow() + access_token_expires
   
   to_encode.update({"exp": expire})
   encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -46,7 +42,7 @@ def verify_token(token: str = Depends(oauth2_scheme)):
     raise HTTPException(status_code=401, detail=errorMessages.INVALID_TOKEN)
 
 def generate_six_digit_number_code():
-  return randint(100000, 999999)
+  return secrets.randbelow(900000) + 100000
 
 def create_refresh_token(data:dict):
   access_token_expires = timedelta(days=int(REFRESH_TOKEN_EXPIRE_DAYS))

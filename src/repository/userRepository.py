@@ -1,3 +1,5 @@
+from repository import userRepository
+
 # Referencia: https://fastapi.tiangolo.com/tutorial/sql-databases/#crud-utils
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -36,11 +38,32 @@ def get_users(db: Session, users_filter: userSchema.UserListFilter):
   return { "users": query.all(), "total": total_count }
 
 def create_user(db: Session, name, connection, email, password, activation_code):
-  db_user = userModel.User(name=name, connection=connection, email=email, password=password, activation_code=activation_code)
+  db_user = userModel.User(name=name, connection=connection, email=email, password=password, activation_code=activation_code,)
   db.add(db_user)
   db.commit()
   db.refresh(db_user)
   return db_user
+
+async def get_or_create_user(email: str, name: str, db: Session):
+
+    user = userRepository.get_user_by_email(db, email)
+    
+    if user is None:
+        user = userRepository.create_by_login(db, name=name, email=email)
+    
+    return user
+
+def create_by_login(db: Session, name, email):
+
+    db_user = userModel.User(
+        name=name,
+        email=email
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
 
 def update_user(db: Session, db_user: userSchema.User, user: userSchema.UserUpdate):
   user_data = user.dict(exclude_unset=True)

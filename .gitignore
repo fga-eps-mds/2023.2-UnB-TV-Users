@@ -4,3 +4,7 @@ venv
 .env
 build
 unb_tv.egg-info
+data/postgress
+.pytest_cache
+data
+.coverage

@@ -12,7 +12,8 @@ services:
     environment:
       - POSTGRES_HOST=db
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: always
     networks:
       - backend_users
@@ -33,6 +34,12 @@ services:
     restart: always
     networks:
       - backend_users
+    healthcheck:
+      test:
+          ["CMD-SHELL","pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}",]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

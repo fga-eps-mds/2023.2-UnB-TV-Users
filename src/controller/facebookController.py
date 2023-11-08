@@ -41,7 +41,7 @@ GenericSSO = create_provider(name="facebook", discovery_document=discovery_docum
 sso = GenericSSO(
     client_id=FACEBOOK_CLIENT_ID,  # Replace with your App ID
     client_secret=FACEBOOK_CLIENT_SECRET,  # Replace with your App Secret
-    redirect_uri="http://localhost:5000/callback",
+    redirect_uri="http://localhost:8000/callback",
     allow_insecure_http=True
 )
 
@@ -59,12 +59,11 @@ async def sso_callback(request: Request, db: Session = Depends(get_db)):
         user_data = await sso.verify_and_process(request)
     
     if user_data:
-        user_email = user_data.email
-        user_name = user_data.display_name
-        
-        user = await get_or_create_user(user_email, user_name, db)
-        
-        return {
+            user_email = user_data.email
+            user_name = user_data.display_name
+            
+            user = await get_or_create_user(user_email, user_name, db)
+            return {
             "display_name": user.name,
             "email": user.email,
         }

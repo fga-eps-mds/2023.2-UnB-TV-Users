@@ -17,7 +17,7 @@ app = FastAPI()
 sso = GoogleSSO(
     client_id=CLIENT_ID,
     client_secret=CLIENT_SECRET,
-    redirect_uri="http://localhost:5000/auth/callback",
+    redirect_uri="http://localhost:8000/auth/callback",
     allow_insecure_http=True,
 )
 
@@ -44,6 +44,9 @@ async def auth_callback(request: Request, db: Session = Depends(get_db)):
             user_name = user_data.display_name
             
             user = await get_or_create_user(user_email, user_name, db)
-            return user
+            return {
+            "display_name": user.name,
+            "email": user.email,
+        }
     else:
             return JSONResponse(status_code=400, content={"error": "Authentication failed"})

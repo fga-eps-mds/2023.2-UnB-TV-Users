@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from domain import userSchema
 from model import userModel
-from model.userModel import SocialUser
+from model.userModel import SSOUser
 
 def get_user(db: Session, user_id: int):
   return db.query(userModel.User).filter(userModel.User.id == user_id).first()
@@ -34,14 +34,14 @@ async def get_or_create_user(email: str, name: str, db: Session):
 
 def create_by_login(db: Session, name, email):
 
-    db_social_user = SocialUser(
+    db_user = userModel.SSOUser(
         name=name,
         email=email,
     )
-    db.add(db_social_user)
+    db.add(db_user)
     db.commit()
-    db.refresh(db_social_user)
-    return db_social_user
+    db.refresh(db_user)
+    return db_user
 
 
 def update_user(db: Session, db_user: userSchema.User, user: userSchema.UserUpdate):

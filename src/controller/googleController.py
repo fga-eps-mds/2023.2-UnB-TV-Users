@@ -44,9 +44,6 @@ async def auth_callback(request: Request, db: Session = Depends(get_db)):
             user_name = user_data.display_name
             
             user = await get_or_create_user(user_email, user_name, db)
-            return {
-            "display_name": user.name,
-            "email": user.email,
-        }
+            return user
     else:
             return JSONResponse(status_code=400, content={"error": "Authentication failed"})

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from database import get_db
 from repository.userRepository import get_or_create_user
+from fastapi.responses import RedirectResponse
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 CLIENT_ID = os.getenv("CLIENT_ID")
@@ -44,6 +45,6 @@ async def auth_callback(request: Request, db: Session = Depends(get_db)):
             user_name = user_data.display_name
             
             user = await get_or_create_user(user_email, user_name, db)
-            return user
+            return RedirectResponse(url=f"http://localhost:4200/videos")
     else:
             return JSONResponse(status_code=400, content={"error": "Authentication failed"})

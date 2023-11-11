@@ -1,6 +1,6 @@
 import pytest, os
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 from sqlalchemy.pool import StaticPool
@@ -15,10 +15,11 @@ from src.model import userModel
 from src.utils import security, dotenv, send_mail
 from src.database import get_db, engine, Base
 
-valid_user_active = {"name": "Forsen", "email": "valid@email.com", "connection": "COMUNIDADE", "password": "123456"}
+valid_user_active_admin = {"name": "Forsen", "email": "valid@email.com", "connection": "PROFESSOR", "password": "123456"}
+valid_user_active_user = {"name": "Guy Beahm", "email": "valid2@email.com", "connection": "COMUNIDADE", "password": "123456"}
 duplicated_user = {"name": "John", "email": "valid@email.com", "connection": "COMUNIDADE", "password": "123456"} 
-valid_user_not_active = {"name": "Peter", "email": "valid2@email.com", "connection": "COMUNIDADE", "password": "123456"}
-valid_user_to_be_deleted = {"name": "Simon", "email": "valid3@email.com", "connection": "COMUNIDADE", "password": "123456"}
+valid_user_not_active = {"name": "Peter", "email": "valid3@email.com", "connection": "COMUNIDADE", "password": "123456"}
+valid_user_to_be_deleted = {"name": "Simon", "email": "valid4@email.com", "connection": "COMUNIDADE", "password": "123456"}
 invalid_connection = {"name": "Mike", "email": "invalid@email.com", "connection": "INVALID", "password": "123456"}
 invalid_pass_length = {"name": "Victor", "email": "invalid@email.com", "connection": "COMUNIDADE", "password": "123"}
 invalid_pass = {"name": "Luisa", "email": "invalid@email.com", "connection": "COMUNIDADE", "password": "123abc"}
@@ -26,7 +27,10 @@ invalid_pass = {"name": "Luisa", "email": "invalid@email.com", "connection": "CO
 client = TestClient(app)
 
 class TestAuth:
-  __token__ = None
+  __admin_access_token__ = None
+  __admin_refresh_token__ = None
+  __user_access_token__ = None
+  __user_refresh_token__ = None
   
   @pytest.fixture(scope="session", autouse=True)
   def setup(self, session_mocker):
@@ -35,7 +39,12 @@ class TestAuth:
     session_mocker.patch('utils.send_mail.send_reset_password_code', return_value=JSONResponse(status_code=200, content={ "status": "success" }))
   
     # /register - ok
-    response = client.post("/api/auth/register", json=valid_user_active)
+    response = client.post("/api/auth/register", json=valid_user_active_admin)
+    data = response.json()
+    assert response.status_code == 201
+    assert data['status'] == 'success'
+    
+    response = client.post("/api/auth/register", json=valid_user_active_user)
     data = response.json()
     assert response.status_code == 201
     assert data['status'] == 'success'
@@ -51,22 +60,43 @@ class TestAuth:
     assert data['status'] == 'success'
     
     # /activate-account: ok 
-    response = client.patch("/api/auth/activate-account", json={"email": valid_user_active['email'], "code": 123456})
+    response = client.patch("/api/auth/activate-account", json={"email": valid_user_active_admin['email'], "code": 123456})
+    data = response.json()
+    assert response.status_code == 200
+    assert data['status'] == 'success'
+    
+    response = client.patch("/api/auth/activate-account", json={"email": valid_user_active_user['email'], "code": 123456})
     data = response.json()
     assert response.status_code == 200
     assert data['status'] == 'success'
 
     # /login: ok
-    response = client.post("/api/auth/login", json={"email": valid_user_active['email'], "password": valid_user_active['password']})
+    response = client.post("/api/auth/login", json={"email": valid_user_active_admin['email'], "password": valid_user_active_admin['password']})
     data = response.json()
     assert response.status_code == 200
     assert data['token_type'] == 'bearer'
-    assert security.verify_token(data['access_token'])['email'] == valid_user_active['email']
+    assert security.verify_token(data['access_token'])['email'] == valid_user_active_admin['email']
+    
+    TestAuth.__admin_access_token__ = data['access_token']
+    TestAuth.__admin_refresh_token__ = data['access_token']
+    
+    response = client.post("/api/auth/login", json={"email": valid_user_active_user['email'], "password": valid_user_active_user['password']})
+    data = response.json()
+    assert response.status_code == 200
+    assert data['token_type'] == 'bearer'
+    assert security.verify_token(data['access_token'])['email'] == valid_user_active_user['email']
+    
+    TestAuth.__user_access_token__ = data['access_token']
+    TestAuth.__user_refresh_token__ = data['access_token']
 
-    TestAuth.__token__ = data['access_token']
-
+    # Atualiza role do active_user_admin de USER para ADMIN
+    with engine.connect() as connection:
+      query = "UPDATE users SET role = 'ADMIN' WHERE id = 1;"
+      connection.execute(text(query))
+      connection.commit()
+      
     yield
-
+  
     userModel.Base.metadata.drop_all(bind=engine)
 
   # REGISTER
@@ -96,7 +126,7 @@ class TestAuth:
 
   # LOGIN
   def test_auth_login_wrong_password(self, setup):
-    response = client.post("/api/auth/login", json={ "email": valid_user_active['email'], "password": "PASSWORD" })
+    response = client.post("/api/auth/login", json={ "email": valid_user_active_admin['email'], "password": "PASSWORD" })
     data = response.json()
     assert response.status_code == 404
     assert data['detail'] == errorMessages.PASSWORD_NO_MATCH
@@ -122,7 +152,7 @@ class TestAuth:
     assert data['detail'] == errorMessages.USER_NOT_FOUND
     
   def test_auth_resend_code_already_active(self, setup):
-    response = client.post("/api/auth/resend-code", json={"email": valid_user_active['email']})
+    response = client.post("/api/auth/resend-code", json={"email": valid_user_active_admin['email']})
     data = response.json()
     assert response.status_code == 400
     assert data['status'] == 'error'
@@ -142,7 +172,7 @@ class TestAuth:
     assert data['detail'] == errorMessages.USER_NOT_FOUND
   
   def test_auth_activate_account_already_active(self, setup):
-    response = client.patch("/api/auth/activate-account", json={"email": valid_user_active['email'], "code": 123456})
+    response = client.patch("/api/auth/activate-account", json={"email": valid_user_active_admin['email'], "code": 123456})
     data = response.json()
     assert response.status_code == 200
     assert data['status'] == 'error'
@@ -183,20 +213,20 @@ class TestAuth:
     
   def test_auth_reset_password_change_invalid_password(self, setup):
     # Senha inválida
-    response = client.patch("/api/auth/reset-password/change", json={"email": valid_user_active['email'], "password": "ABC", "code": 123456})
+    response = client.patch("/api/auth/reset-password/change", json={"email": valid_user_active_admin['email'], "password": "ABC", "code": 123456})
     data = response.json()
     assert response.status_code == 400
     assert data['detail'] == errorMessages.INVALID_PASSWORD
 
   # RESET PASSWORD - Fluxo de troca
   def test_auth_reset_password_flow(self, setup):
-    response = client.post("/api/auth/reset-password/verify", json={"email": valid_user_active['email'], "code": 123456})
+    response = client.post("/api/auth/reset-password/verify", json={"email": valid_user_active_admin['email'], "code": 123456})
     data = response.json()
     assert response.status_code == 404
     assert data['detail'] == errorMessages.NO_RESET_PASSWORD_CODE
     
     # Requisitar troca de senha
-    response = client.post("/api/auth/reset-password/request", json={"email": valid_user_active['email']})
+    response = client.post("/api/auth/reset-password/request", json={"email": valid_user_active_admin['email']})
     data = response.json()
     assert response.status_code == 200
     assert data['status'] == 'success'
@@ -208,33 +238,37 @@ class TestAuth:
     assert data['detail'] == errorMessages.INVALID_REQUEST
     
     # Código inválido - verify
-    response = client.post("/api/auth/reset-password/verify", json={"email": valid_user_active['email'], "code": 000000})
+    response = client.post("/api/auth/reset-password/verify", json={"email": valid_user_active_admin['email'], "code": 000000})
     data = response.json()
     assert response.status_code == 400
     assert data['detail'] == errorMessages.INVALID_RESET_PASSWORD_CODE
     
     # Código inválido - change
-    response = client.patch("/api/auth/reset-password/change", json={"email": valid_user_active['email'], "password": "123456", "code": 000000})
+    response = client.patch("/api/auth/reset-password/change", json={"email": valid_user_active_admin['email'], "password": "123456", "code": 000000})
     data = response.json()
     assert response.status_code == 400
     assert data['detail'] == errorMessages.INVALID_RESET_PASSWORD_CODE
     
     # Código válido
-    response = client.post("/api/auth/reset-password/verify", json={"email": valid_user_active['email'], "code": 123456})
+    response = client.post("/api/auth/reset-password/verify", json={"email": valid_user_active_admin['email'], "code": 123456})
     data = response.json()
     assert response.status_code == 200
     assert data['status'] == 'success'
     
     # Troca de senha
-    response = client.patch("/api/auth/reset-password/change", json={"email": valid_user_active['email'], "password": "123456", "code": 123456})
+    response = client.patch("/api/auth/reset-password/change", json={"email": valid_user_active_admin['email'], "password": "123456", "code": 123456})
     data = response.json()
     assert response.status_code == 200
-    assert data['name'] == valid_user_active['name']
-    assert data['connection'] == valid_user_active['connection']
-    assert data['email'] == valid_user_active['email']
+    assert data['name'] == valid_user_active_admin['name']
+    assert data['connection'] == valid_user_active_admin['connection']
+    assert data['email'] == valid_user_active_admin['email']
     assert data['is_active'] == True
     
-
+  def test_auth_refresh_token(self, setup):
+    headers={'Authorization': f'Bearer {self.__admin_refresh_token__}'}
+    response = client.post('/api/auth/refresh', json={}, headers=headers)
+    data = response.json()
+    assert response.status_code == 200    
 
   def test_root_request(self, setup):
     response = client.get('/')
@@ -282,24 +316,24 @@ class TestAuth:
     send_mail.fm.config.SUPPRESS_SEND = 1
 
     with send_mail.fm.record_messages() as outbox:
-        response = await send_mail.send_verification_code(valid_user_active['email'], 123456)
+        response = await send_mail.send_verification_code(valid_user_active_admin['email'], 123456)
         
         assert response.status_code == 200
         assert len(outbox) == 1
         assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
-        assert outbox[0]['To'] == valid_user_active['email']
+        assert outbox[0]['To'] == valid_user_active_admin['email']
         
   @pytest.mark.asyncio
   async def test_auth_send_reset_password_code_success(self, setup):
     send_mail.fm.config.SUPPRESS_SEND = 1
 
     with send_mail.fm.record_messages() as outbox:
-        response = await send_mail.send_reset_password_code(valid_user_active['email'], 123456)
+        response = await send_mail.send_reset_password_code(valid_user_active_admin['email'], 123456)
         
         assert response.status_code == 200
         assert len(outbox) == 1
         assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
-        assert outbox[0]['To'] == valid_user_active['email']
+        assert outbox[0]['To'] == valid_user_active_admin['email']
 
 
 

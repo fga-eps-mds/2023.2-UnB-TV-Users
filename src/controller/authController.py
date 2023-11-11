@@ -57,11 +57,10 @@ async def login(data: authSchema.UserLogin, db: Session = Depends(get_db)):
   access_token = security.create_access_token(data={"id": user.id, "email": user.email})
   refresh_token = security.create_refresh_token(data={"id": user.id, "email": user.email})
 
-  return JSONResponse(status_code=201, content={ "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer" })
+  return JSONResponse(status_code=200, content={ "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer" })
 
-@auth.post("/refresh", response_model=authSchema.Refresh_Token)
-def refresh_token(token:dict=Depends(security.verify_token)):
-
+@auth.post("/refresh", response_model=authSchema.RefreshTokenResponse)
+def refresh_token(token: dict = Depends(security.verify_token)):
   access_token=security.create_access_token(token)
   return JSONResponse(status_code=200, content={ "access_token": access_token, "token_type": "bearer" })
 
@@ -75,9 +74,6 @@ async def send_new_code(data: authSchema.SendNewCode, db: Session = Depends(get_
     return JSONResponse(status_code=400, content={ "status": "error", "message": errorMessages.ACCOUNT_ALREADY_ACTIVE })
 
   res = await send_mail.send_verification_code(email=data.email, code=user.activation_code)
-  if res.status_code != 200:
-    return JSONResponse(status_code=400, content={ "status": "error", "message": errorMessages.ERROR_SENDING_EMAIL })
-
   return JSONResponse(status_code=201, content={ "status": "success" })
 
 @auth.patch('/activate-account')

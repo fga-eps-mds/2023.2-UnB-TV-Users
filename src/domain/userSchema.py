@@ -32,11 +32,3 @@ class UserListFilter(Filter):
   class Constants(Filter.Constants):
     model = userModel.User
     search_model_fields = ["name", "email"]
-
-  def filter(self, query):
-    query = super().filter(query)
-    if self.name:
-      query = query.filter(or_(userModel.User.name.ilike(f"%{self.name}%")))
-    if self.email:
-      query = query.filter(or_(userModel.User.email.ilike(f"%{self.email}%")))
-    return query

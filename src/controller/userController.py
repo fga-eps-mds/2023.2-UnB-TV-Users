@@ -54,7 +54,7 @@ async def partial_update_user(user_id: int, data: userSchema.UserUpdate, db: Ses
   if not db_user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
 
-  if data.email:
+  if data.email and data.email != db_user.email:
     user = userRepository.get_user_by_email(db, data.email)
     if user: 
       raise HTTPException(status_code=404, detail=errorMessages.EMAIL_ALREADY_REGISTERED)
@@ -72,7 +72,7 @@ async def delete_user(user_id: int, db: Session = Depends(get_db), token: dict =
   return db_user
 
 @user.patch("/role/{user_id}")
-def atualiza_role(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
+def update_role(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
   user = userRepository.get_user_by_email(db, email=token['email'])
   if user.role != enumeration.UserRole.ADMIN.value:
     raise HTTPException(status_code=401, detail=errorMessages.NO_PERMISSION)
@@ -81,7 +81,7 @@ def atualiza_role(user_id: int, db: Session = Depends(get_db), token: dict = Dep
   user = userRepository.get_user(db, user_id)
 
   if not user:
-    raise HTTPException(status_code=404, detail="Esse usuario nao existe")
+    raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
   
   new_role = enumeration.UserRole.ADMIN.value if user.role == enumeration.UserRole.USER.value else enumeration.UserRole.USER.value
   user = userRepository.update_user_role(db, db_user=user, role=new_role)

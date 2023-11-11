@@ -37,7 +37,7 @@ app.include_router(router=facebookController.facebook)
 def read_root():
     return {"message": "UnB-TV!"}
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
   port = 8000
   if (len(sys.argv) == 2):
     port = sys.argv[1]

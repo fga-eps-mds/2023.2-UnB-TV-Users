@@ -84,7 +84,7 @@ class TestUser:
   
   def test_user_partial_update_user(self):
     headers={'Authorization': f'Bearer {test_auth.TestAuth.__token__}'}
-    valid_user_active = {"name": "NameZ", "email": "valid@email.com", "connection": "COMUNIDADE"}
+    valid_user_active = {"name": "NameZ", "email": "valid@email.com", "connection": "ESTUDANTE"}
     response = client.patch(f"/api/users/1", json=valid_user_active, headers=headers)
     data = response.json()
     

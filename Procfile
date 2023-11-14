@@ -1,1 +1,1 @@
-worker: python src/main.py ${PORT}
+web: python src/main.py

@@ -38,7 +38,7 @@ def read_root():
     return {"message": "UnB-TV!"}
 
 if __name__ == '__main__':
-  port = 8080
+  port = 8000
   if (len(sys.argv) == 2):
     port = sys.argv[1]
 

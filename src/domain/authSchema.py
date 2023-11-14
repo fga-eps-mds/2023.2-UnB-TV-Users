@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel, EmailStr
 
 class UserLogin(BaseModel):
@@ -32,3 +33,6 @@ class ResetPasswordUpdate(BaseModel):
   email: str
   password: str
   code: int
+
+class Connections(BaseModel):
+  vinculos: List[str]

@@ -277,29 +277,29 @@ class TestAuth:
     assert response.status_code == 400
     assert data['detail'] == "'code' parameter was not found in callback request"
      
-  # @pytest.mark.asyncio
-  # async def test_auth_send_mail_send_verification_code_success(self, setup):
-  #   send_mail.fm.config.SUPPRESS_SEND = 1
+  @pytest.mark.asyncio
+  async def test_auth_send_mail_send_verification_code_success(self, setup):
+    send_mail.fm.config.SUPPRESS_SEND = 1
 
-  #   with send_mail.fm.record_messages() as outbox:
-  #       response = await send_mail.send_verification_code(valid_user_active['email'], 123456)
+    with send_mail.fm.record_messages() as outbox:
+        response = await send_mail.send_verification_code(valid_user_active['email'], 123456)
         
-  #       assert response.status_code == 200
-  #       assert len(outbox) == 1
-  #       assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
-  #       assert outbox[0]['To'] == valid_user_active['email']
+        assert response.status_code == 200
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
+        assert outbox[0]['To'] == valid_user_active['email']
         
-  # @pytest.mark.asyncio
-  # async def test_auth_send_reset_password_code_success(self, setup):
-  #   send_mail.fm.config.SUPPRESS_SEND = 1
+  @pytest.mark.asyncio
+  async def test_auth_send_reset_password_code_success(self, setup):
+    send_mail.fm.config.SUPPRESS_SEND = 1
 
-  #   with send_mail.fm.record_messages() as outbox:
-  #       response = await send_mail.send_reset_password_code(valid_user_active['email'], 123456)
+    with send_mail.fm.record_messages() as outbox:
+        response = await send_mail.send_reset_password_code(valid_user_active['email'], 123456)
         
-  #       assert response.status_code == 200
-  #       assert len(outbox) == 1
-  #       assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
-  #       assert outbox[0]['To'] == valid_user_active['email']
+        assert response.status_code == 200
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
+        assert outbox[0]['To'] == valid_user_active['email']
 
 
 

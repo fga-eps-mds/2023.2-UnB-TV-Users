@@ -1,1 +1,1 @@
-web: python src/main.py ${8000}
+web: python src/main.py

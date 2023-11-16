@@ -15,6 +15,11 @@ auth = APIRouter(
   prefix="/auth"
 )
 
+@auth.get("/vinculo", response_model=authSchema.Connections)
+def get_connection():
+    connections = [member.value for member in enumeration.UserConnection]
+    return JSONResponse(status_code=200, content=connections)
+
 @auth.post('/register')
 async def register(data: authSchema.UserCreate, db: Session = Depends(get_db)):
   # Verifica se connection é valido

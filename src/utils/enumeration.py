@@ -1,10 +1,12 @@
 from enum import Enum
 
 class UserConnection(Enum):
-  ALUNO = "ALUNO"
+  ESTUDANTE = "ESTUDANTE"
   PROFESSOR = "PROFESSOR"
-  COMUNIDADE = "COMUNIDADE"
-  EXTERNO = "EXTERNO"
+  SERVIDOR = "SERVIDOR"
+  TERCEIRIZADO = "TERCEIRIZADO"
+  ESTAGIARIO = "ESTAGIARIO"
+  COMUNIDADE_EXTERNA = "COMUNIDADE EXTERNA"
 
   @classmethod
   def has_value(cls, value):

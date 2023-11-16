@@ -6,10 +6,8 @@ from constants import errorMessages
 from domain import userSchema
 from repository import userRepository
 from utils import security, enumeration
-from starlette.responses import JSONResponse
 
 from fastapi_filter import FilterDepends
-from fastapi.encoders import jsonable_encoder
 
 user = APIRouter(
   prefix="/users"
@@ -17,6 +15,7 @@ user = APIRouter(
 
 @user.get("/", response_model=list[userSchema.User])
 def read_users(
+  response: Response,
   users_filter: userSchema.UserListFilter = FilterDepends(userSchema.UserListFilter),
   db: Session = Depends(get_db), 
   _: dict = Depends(security.verify_token),
@@ -26,9 +25,8 @@ def read_users(
   users = result['users']
   total = result['total']
 
-  response_content = jsonable_encoder(users)
-
-  return JSONResponse(content=response_content, headers={"X-Total-Count": str(total)})
+  response.headers['X-Total-Count'] = str(total)
+  return users
 
 @user.get("/{user_id}", response_model=userSchema.User)
 async def read_user(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
@@ -71,7 +69,7 @@ async def delete_user(user_id: int, db: Session = Depends(get_db), token: dict =
   userRepository.delete_user(db, db_user)
   return db_user
 
-@user.patch("/role/{user_id}")
+@user.patch("/role/{user_id}", response_model=userSchema.User)
 def update_role(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
   user = userRepository.get_user_by_email(db, email=token['email'])
   if user.role != enumeration.UserRole.ADMIN.value:

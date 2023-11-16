@@ -16,13 +16,13 @@ from src.utils import security, dotenv, send_mail, enumeration
 from src.database import get_db, engine, Base
 
 valid_user_active_admin = {"name": "Forsen", "email": "valid@email.com", "connection": "PROFESSOR", "password": "123456"}
-valid_user_active_user = {"name": "Guy Beahm", "email": "valid2@email.com", "connection": "COMUNIDADE", "password": "123456"}
-duplicated_user = {"name": "John", "email": "valid@email.com", "connection": "COMUNIDADE", "password": "123456"} 
-valid_user_not_active = {"name": "Peter", "email": "valid3@email.com", "connection": "COMUNIDADE", "password": "123456"}
-valid_user_to_be_deleted = {"name": "Simon", "email": "valid4@email.com", "connection": "COMUNIDADE", "password": "123456"}
+valid_user_active_user = {"name": "Guy Beahm", "email": "valid2@email.com", "connection": "ESTUDANTE", "password": "123456"}
+duplicated_user = {"name": "John", "email": "valid@email.com", "connection": "ESTUDANTE", "password": "123456"} 
+valid_user_not_active = {"name": "Peter", "email": "valid3@email.com", "connection": "ESTUDANTE", "password": "123456"}
+valid_user_to_be_deleted = {"name": "Simon", "email": "valid4@email.com", "connection": "ESTUDANTE", "password": "123456"}
 invalid_connection = {"name": "Mike", "email": "invalid@email.com", "connection": "INVALID", "password": "123456"}
-invalid_pass_length = {"name": "Victor", "email": "invalid@email.com", "connection": "ESTUDANTE", "password": "123"}
-invalid_pass = {"name": "Luisa", "email": "invalid@email.com", "connection": "ESTUDANTE", "password": "123abc"}
+invalid_pass_length = {"name": "Victor", "email": "invalid@email.com", "connection": "SERVIDOR", "password": "123"}
+invalid_pass = {"name": "Luisa", "email": "invalid@email.com", "connection": "SERVIDOR", "password": "123abc"}
 
 client = TestClient(app)
 
@@ -339,10 +339,3 @@ class TestAuth:
         assert len(outbox) == 1
         assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
         assert outbox[0]['To'] == valid_user_active_admin['email']
-
-
-
-
-
-
-    

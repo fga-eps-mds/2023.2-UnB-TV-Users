@@ -1,6 +1,7 @@
 from repository import userRepository
 
 # Referencia: https://fastapi.tiangolo.com/tutorial/sql-databases/#crud-utils
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from domain import userSchema
@@ -12,8 +13,29 @@ def get_user(db: Session, user_id: int):
 def get_user_by_email(db: Session, email: str):
   return db.query(userModel.User).filter(userModel.User.email == email).first()
 
-def get_users(db: Session, skip: int = 0, limit: int = 100):
-  return db.query(userModel.User).offset(skip).limit(limit).all()
+def get_users(db: Session, users_filter: userSchema.UserListFilter):
+  query = db.query(userModel.User)
+
+  if (users_filter.name):
+    query = query.filter(userModel.User.name == users_filter.name)
+  elif (users_filter.email):
+    query = query.filter(userModel.User.email == users_filter.email)
+  elif (users_filter.name_or_email):
+    query = query.filter(or_(userModel.User.name.ilike(f'%{users_filter.name_or_email}%'), userModel.User.email.ilike(f'%{users_filter.name_or_email}%')))
+
+  if (users_filter.connection):
+    query = query.filter(userModel.User.connection == users_filter.connection)
+
+  total_count = query.count()
+  query = query.order_by(userModel.User.name.asc())
+
+  if (users_filter.offset):
+    query = query.offset(users_filter.offset)
+
+  if (users_filter.limit):
+    query = query.limit(users_filter.limit)
+
+  return { "users": query.all(), "total": total_count }
 
 def create_user(db: Session, name, connection, email, password, activation_code):
   db_user = userModel.User(name=name, connection=connection, email=email, password=password, activation_code=activation_code,)
@@ -47,6 +69,14 @@ def update_user(db: Session, db_user: userSchema.User, user: userSchema.UserUpda
   user_data = user.dict(exclude_unset=True)
   for key, value in user_data.items():
     setattr(db_user, key, value)
+
+  db.add(db_user)
+  db.commit()
+  db.refresh(db_user)
+  return db_user
+
+def update_user_role(db: Session, db_user: userSchema.User, role: str):
+  db_user.role = role
 
   db.add(db_user)
   db.commit()

@@ -44,6 +44,19 @@ def create_user(db: Session, name, connection, email, password, activation_code)
   db.refresh(db_user)
   return db_user
 
+def create_user_social(db: Session, name, email):
+  db_user = userModel.User(
+  name=name, 
+  connection="", 
+  email=email, 
+  password="", 
+  activation_code="",)
+
+  db.add(db_user)
+  db.commit()
+  db.refresh(db_user)
+  return db_user
+
 async def get_or_create_user(email: str, name: str, db: Session):
 
     user = userRepository.get_user_by_email(db, email)

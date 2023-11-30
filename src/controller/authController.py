@@ -64,6 +64,18 @@ async def login(data: authSchema.UserLogin, db: Session = Depends(get_db)):
 
   return JSONResponse(status_code=200, content={ "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer" })
 
+@auth.post("/login/social")
+async def login_social(user: authSchema.UserSocial, db: Session = Depends(get_db)):
+    
+    existing_user = userRepository.get_user_by_email(db, user.email)
+    if existing_user:
+        return {"message": "Usuário já cadastrado."}
+
+    
+    new_user = userRepository.create_user_social(db, user.name, user.email)
+    return {"message": "Usuário cadastrado com sucesso.", "user_id": new_user.id}
+   
+  
 @auth.post("/refresh", response_model=authSchema.RefreshTokenResponse)
 def refresh_token(token: dict = Depends(security.verify_token)):
   access_token=security.create_access_token(token)

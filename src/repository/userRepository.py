@@ -47,10 +47,11 @@ def create_user(db: Session, name, connection, email, password, activation_code)
 def create_user_social(db: Session, name, email):
   db_user = userModel.User(
   name=name, 
-  connection="", 
+  connection=None, 
   email=email, 
-  password="", 
-  activation_code="",)
+  password=None, 
+  activation_code=None,
+  is_active=True)
 
   db.add(db_user)
   db.commit()

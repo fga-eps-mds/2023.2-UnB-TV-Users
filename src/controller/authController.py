@@ -78,7 +78,6 @@ async def send_new_code(data: authSchema.SendNewCode, db: Session = Depends(get_
   if user.is_active:
     return JSONResponse(status_code=400, content={ "status": "error", "message": errorMessages.ACCOUNT_ALREADY_ACTIVE })
 
-  res = await send_mail.send_verification_code(email=data.email, code=user.activation_code)
   return JSONResponse(status_code=201, content={ "status": "success" })
 
 @auth.patch('/activate-account')

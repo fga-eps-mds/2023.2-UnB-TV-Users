@@ -17,7 +17,7 @@ def create_provider(
     *,
     name: str = "generic",
     default_scope: Optional[List[str]] = None,
-    discovery_document: Union[DiscoveryDocument, Callable[[SSOBase], DiscoveryDocument]],
+    discovery_document: DiscoveryDocument | Callable[[SSOBase], DiscoveryDocument],
     response_convertor: Optional[Callable[[Dict[str, Any], Optional["httpx.AsyncClient"]], OpenID]] = None
 ) -> Type[SSOBase]:
     """A factory to create a generic OAuth client usable with almost any OAuth provider.

@@ -69,11 +69,13 @@ async def login_social(user: authSchema.UserSocial, db: Session = Depends(get_db
     
     existing_user = userRepository.get_user_by_email(db, user.email)
     if existing_user:
-        return {"message": "Usuário já cadastrado."}
-
+        access_token = security.create_access_token(data={ "id": existing_user.id, "email": existing_user.email, "role": existing_user.role })
+        return JSONResponse(status_code=200, content={ "access_token": access_token, "token_type": "bearer" })
     
     new_user = userRepository.create_user_social(db, user.name, user.email)
-    return {"message": "Usuário cadastrado com sucesso.", "user_id": new_user.id}
+    access_token = security.create_access_token(data={ "id": new_user.id, "email": new_user.email, "role": new_user.role })
+    return JSONResponse(status_code=200, content={ "access_token": access_token, "token_type": "bearer" })
+
    
   
 @auth.post("/refresh", response_model=authSchema.RefreshTokenResponse)

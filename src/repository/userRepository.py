@@ -13,9 +13,6 @@ def get_user(db: Session, user_id: int):
 def get_user_by_email(db: Session, email: str):
   return db.query(userModel.User).filter(userModel.User.email == email).first()
 
-def get_user_by_email_social(db: Session, email: str):
-  return db.query(userModel.SocialUser).filter(userModel.SocialUser.email == email).first()
-
 def get_users(db: Session, users_filter: userSchema.UserListFilter):
   query = db.query(userModel.User)
 
@@ -48,9 +45,13 @@ def create_user(db: Session, name, connection, email, password, activation_code)
   return db_user
 
 def create_user_social(db: Session, name, email):
-  db_user = userModel.SocialUser(
+  db_user = userModel.User(
   name=name,
-  email=email,)
+  connection="ESTUDANTE",
+  role="USER",
+  email=email,
+  password="sociallogin",
+  is_active=True,)
 
   db.add(db_user)
   db.commit()

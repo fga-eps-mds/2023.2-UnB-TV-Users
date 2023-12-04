@@ -50,7 +50,6 @@ def create_user_social(db: Session, name, email):
   connection="ESTUDANTE",
   role="USER",
   email=email,
-  password="sociallogin",
   is_active=True,)
 
   db.add(db_user)

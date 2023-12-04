@@ -14,7 +14,7 @@ class User(Base):
   connection = Column(String, nullable=False)
   role = Column(String, default="USER")
   email = Column(String, unique=True, index=True, nullable=False)
-  password = Column(String, nullable=False)
+  password = Column(String, nullable=True)
   is_active = Column(Boolean, default=False)
   activation_code = Column(Integer, nullable=True)
   password_reset_code = Column(Integer, nullable=True)

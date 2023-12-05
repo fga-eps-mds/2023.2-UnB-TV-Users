@@ -15,6 +15,8 @@ invalid_pass_length = test_auth.invalid_pass_length
 invalid_pass = test_auth.invalid_pass
 valid_user_to_be_deleted = test_auth.valid_user_to_be_deleted
 
+total_registed_users = test_auth.total_registed_users
+
 client = TestClient(app)
 
 class TestUser: 
@@ -27,22 +29,22 @@ class TestUser:
     response = client.get("/api/users/", headers=headers)
     data = response.json()
     assert response.status_code == 200
-    assert len(data) == 4
-    assert response.headers['x-total-count'] == '4'
+    assert len(data) == total_registed_users
+    assert response.headers['x-total-count'] == str(total_registed_users)
     
     # Get Users - Offset
     response = client.get("/api/users/?offset=1", headers=headers)
     data = response.json()
     assert response.status_code == 200
-    assert len(data) == 3
-    assert response.headers['x-total-count'] == '4'
+    assert len(data) == 4
+    assert response.headers['x-total-count'] == str(total_registed_users)
     
     # Get Users - Limit
     response = client.get("/api/users/?limit=1", headers=headers)
     data = response.json()
     assert response.status_code == 200
     assert len(data) == 1
-    assert response.headers['x-total-count'] == '4'
+    assert response.headers['x-total-count'] == str(total_registed_users)
     
     # Get Users - Filtrar Name
     response = client.get(f"/api/users/?name={valid_user_active_admin['name']}", headers=headers)
@@ -81,7 +83,7 @@ class TestUser:
   # Read User
   def test_user_read_user_not_found(self, setup):
     headers={'Authorization': f'Bearer {test_auth.TestAuth.__admin_access_token__}'}
-    response = client.get("/api/users/5", headers=headers)
+    response = client.get("/api/users/10", headers=headers)
     data = response.json()
     
     assert response.status_code == 404
@@ -127,7 +129,7 @@ class TestUser:
   
   def test_user_partial_update_user_not_found(self, setup):
     headers={'Authorization': f'Bearer {test_auth.TestAuth.__admin_access_token__}'}
-    response = client.patch(f"/api/users/5", json=valid_user_active_admin, headers=headers)
+    response = client.patch(f"/api/users/10", json=valid_user_active_admin, headers=headers)
     data = response.json()
     
     assert response.status_code == 404
@@ -178,7 +180,7 @@ class TestUser:
   # Delete User
   def test_user_delete_user_not_found(self, setup):
     headers={'Authorization': f'Bearer {test_auth.TestAuth.__admin_access_token__}'}
-    response = client.delete(f"/api/users/5", headers=headers)
+    response = client.delete(f"/api/users/10", headers=headers)
     data = response.json()
     
     assert response.status_code == 404

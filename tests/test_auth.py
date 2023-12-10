@@ -23,6 +23,9 @@ valid_user_to_be_deleted = {"name": "Simon", "email": "valid4@email.com", "conne
 invalid_connection = {"name": "Mike", "email": "invalid@email.com", "connection": "INVALID", "password": "123456"}
 invalid_pass_length = {"name": "Victor", "email": "invalid@email.com", "connection": "SERVIDOR", "password": "123"}
 invalid_pass = {"name": "Luisa", "email": "invalid@email.com", "connection": "SERVIDOR", "password": "123abc"}
+valid_social_user = { "name": "Paulo Kogos", "email": "kogos@email.com" }
+
+total_registed_users = 5
 
 client = TestClient(app)
 
@@ -89,6 +92,14 @@ class TestAuth:
     TestAuth.__user_access_token__ = data['access_token']
     TestAuth.__user_refresh_token__ = data['access_token']
 
+    # login social - criação conta (nova)
+    response = client.post('/api/auth/login/social', json=valid_social_user)
+    data = response.json()
+    assert response.status_code == 200
+    assert data["access_token"] != None
+    assert data["token_type"] == "bearer"
+    assert data["is_new_user"] == True
+
     # Atualiza role do active_user_admin de USER para ADMIN
     with engine.connect() as connection:
       query = "UPDATE users SET role = 'ADMIN' WHERE id = 1;"
@@ -143,6 +154,15 @@ class TestAuth:
     data = response.json()
     assert response.status_code == 401
     assert data['detail'] == errorMessages.ACCOUNT_IS_NOT_ACTIVE
+
+  def test_auth_login_social(self, setup):
+    response = client.post('/api/auth/login/social', json=valid_social_user)
+    data = response.json()
+    assert response.status_code == 200
+    assert data["access_token"] != None
+    assert data["refresh_token"] != None
+    assert data["token_type"] == "bearer"
+    assert data["is_new_user"] == False
 
   # RESEND CODE
   def test_auth_resend_code_user_not_found(self, setup):
@@ -304,38 +324,25 @@ class TestAuth:
     assert str(exc_info.value) == "SOME ENVIRONMENT VALUES WERE NOT DEFINED (missing: SECRET)"
     
     os.environ["SECRET"] = environment_secret_value
-    
-  def test_auth_sso_google_callback_error(self, setup):
-    response = client.get("/auth/callback")
-    data = response.json()
-    assert response.status_code == 400
-    assert data['detail'] == "'code' parameter was not found in callback request"
-    
-  def test_auth_sso_google_login_success_load(self, setup):
-    response = client.get("/callback")
-    data = response.json()
-    assert response.status_code == 400
-    assert data['detail'] == "'code' parameter was not found in callback request"
-
 
   @pytest.mark.asyncio
   async def test_auth_send_mail_send_verification_code_success(self, setup):
     send_mail.fm.config.SUPPRESS_SEND = 1
     with send_mail.fm.record_messages() as outbox:
-        response = await send_mail.send_verification_code(valid_user_active_admin['email'], 123456)
-        
-        assert response.status_code == 200
-        assert len(outbox) == 1
-        assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
-        assert outbox[0]['To'] == valid_user_active_admin['email']
+      response = await send_mail.send_verification_code(valid_user_active_admin['email'], 123456)
+      
+      assert response.status_code == 200
+      assert len(outbox) == 1
+      assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
+      assert outbox[0]['To'] == valid_user_active_admin['email']
         
   @pytest.mark.asyncio
   async def test_auth_send_reset_password_code_success(self, setup):
     send_mail.fm.config.SUPPRESS_SEND = 1
     with send_mail.fm.record_messages() as outbox:
-        response = await send_mail.send_reset_password_code(valid_user_active_admin['email'], 123456)
-        
-        assert response.status_code == 200
-        assert len(outbox) == 1
-        assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
-        assert outbox[0]['To'] == valid_user_active_admin['email']
+      response = await send_mail.send_reset_password_code(valid_user_active_admin['email'], 123456)
+      
+      assert response.status_code == 200
+      assert len(outbox) == 1
+      assert outbox[0]['from'] == f'UNB TV <{os.environ["MAIL_FROM"]}>'  
+      assert outbox[0]['To'] == valid_user_active_admin['email']

@@ -11,6 +11,10 @@ class UserCreate(BaseModel):
   email: str
   password: str
 
+class UserSocial(BaseModel):
+  name: str
+  email:str
+
 class Token(BaseModel):
   access_token: str
   refresh_token: str

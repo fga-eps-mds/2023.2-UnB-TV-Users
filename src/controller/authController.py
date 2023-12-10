@@ -47,6 +47,7 @@ async def register(data: authSchema.UserCreate, db: Session = Depends(get_db)):
 
   return JSONResponse(status_code=201, content={ "status": "success" })
 
+  # Recebe os dados de login
 @auth.post("/login", response_model=authSchema.Token)
 async def login(data: authSchema.UserLogin, db: Session = Depends(get_db)):
   user = userRepository.get_user_by_email(db, data.email)
@@ -144,6 +145,7 @@ async def verify_reset_code(data: authSchema.ResetPasswordVerify, db: Session = 
 
   return JSONResponse(status_code=200, content={ "status": "success" })
 
+  # Atualizar senha de um usuário após uma solicitação de redefinição
 @auth.patch('/reset-password/change', response_model=userSchema.User)
 async def update_user_password(data: authSchema.ResetPasswordUpdate, db: Session = Depends(get_db)):
   user = userRepository.get_user_by_email(db, data.email)

@@ -8,7 +8,7 @@ from utils import dotenv
 load_dotenv()
 dotenv.validate_dotenv()
 
-from controller import userController, authController, googleController, facebookController
+from controller import userController, authController
 from database import engine 
 from model import userModel
 
@@ -30,8 +30,6 @@ app.add_middleware(
 # Routers
 app.include_router(prefix="/api", router=authController.auth)
 app.include_router(prefix="/api", router=userController.user)
-app.include_router(router=googleController.google)
-app.include_router(router=facebookController.facebook)
 
 @app.get("/")
 def read_root():

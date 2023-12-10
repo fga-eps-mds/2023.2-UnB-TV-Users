@@ -44,26 +44,18 @@ def create_user(db: Session, name, connection, email, password, activation_code)
   db.refresh(db_user)
   return db_user
 
-async def get_or_create_user(email: str, name: str, db: Session):
+def create_user_social(db: Session, name, email):
+  db_user = userModel.User(
+  name=name,
+  connection="ESTUDANTE",
+  role="USER",
+  email=email,
+  is_active=True,)
 
-    user = userRepository.get_user_by_email(db, email)
-    
-    if user is None:
-        user = userRepository.create_by_login(db, name=name, email=email)
-    
-    return user
-
-def create_by_login(db: Session, name, email):
-
-    db_user = userModel.User(
-        name=name,
-        email=email
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
+  db.add(db_user)
+  db.commit()
+  db.refresh(db_user)
+  return db_user
 
 def update_user(db: Session, db_user: userSchema.User, user: userSchema.UserUpdate):
   user_data = user.dict(exclude_unset=True)

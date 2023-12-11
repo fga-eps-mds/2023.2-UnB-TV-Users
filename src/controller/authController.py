@@ -15,6 +15,7 @@ auth = APIRouter(
   prefix="/auth"
 )
 
+  # Retorna conexões disponíveis 
 @auth.get("/vinculo", response_model=authSchema.Connections)
 def get_connection():
     connections = [member.value for member in enumeration.UserConnection]
@@ -46,6 +47,7 @@ async def register(data: authSchema.UserCreate, db: Session = Depends(get_db)):
 
   return JSONResponse(status_code=201, content={ "status": "success" })
 
+  # Recebe os dados de login
 @auth.post("/login", response_model=authSchema.Token)
 async def login(data: authSchema.UserLogin, db: Session = Depends(get_db)):
   user = userRepository.get_user_by_email(db, data.email)
@@ -64,6 +66,7 @@ async def login(data: authSchema.UserLogin, db: Session = Depends(get_db)):
 
   return JSONResponse(status_code=200, content={ "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer" })
 
+  # Recebe os dados do usuário provenientes de uma autenticação social
 @auth.post("/login/social")
 async def login_social(user: authSchema.UserSocial, db: Session = Depends(get_db)):
   existing_user = userRepository.get_user_by_email(db, user.email)
@@ -86,7 +89,8 @@ async def login_social(user: authSchema.UserSocial, db: Session = Depends(get_db
     "is_new_user": is_new_user,
     "user_id": user_id
   })
-        
+
+  # trata da renovação de tokens de acesso      
 @auth.post("/refresh", response_model=authSchema.RefreshTokenResponse)
 def refresh_token(token: dict = Depends(security.verify_token)):
   access_token=security.create_access_token(token)
@@ -104,6 +108,7 @@ async def send_new_code(data: authSchema.SendNewCode, db: Session = Depends(get_
   res = await send_mail.send_verification_code(email=data.email, code=user.activation_code)
   return JSONResponse(status_code=201, content={ "status": "success" })
 
+  # Recebe dados de validação de conta
 @auth.patch('/activate-account')
 async def validate_account(data: authSchema.AccountValidation, db: Session = Depends(get_db)):
   user = userRepository.get_user_by_email(db, data.email)
@@ -148,21 +153,26 @@ async def verify_reset_code(data: authSchema.ResetPasswordVerify, db: Session = 
 
   return JSONResponse(status_code=200, content={ "status": "success" })
 
+  # Atualizar senha de um usuário após uma solicitação de redefinição
 @auth.patch('/reset-password/change', response_model=userSchema.User)
 async def update_user_password(data: authSchema.ResetPasswordUpdate, db: Session = Depends(get_db)):
   user = userRepository.get_user_by_email(db, data.email)
   if not user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
   
+  # Valida a senha informada
   if data.password and not security.validate_password(data.password):
     raise HTTPException(status_code=400, detail=errorMessages.INVALID_PASSWORD)
 
+  # Verifica se o usuario possui um reset code. Se não possuir, a solicitação é invalida e deve ser bloqueada
   if not user.password_reset_code:
     raise HTTPException(status_code=401, detail=errorMessages.INVALID_REQUEST)
-    
+  
+  # Verifica se o código corresponde
   if data.code != user.password_reset_code:
     raise HTTPException(status_code=400, detail=errorMessages.INVALID_RESET_PASSWORD_CODE)
     
+  # Faz procedimento de hash da senha e atualiza usuario
   hashed_password = security.get_password_hash(data.password)
   updated_user = userRepository.update_password(db, user, hashed_password)
 

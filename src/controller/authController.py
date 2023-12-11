@@ -70,14 +70,22 @@ async def login_social(user: authSchema.UserSocial, db: Session = Depends(get_db
   
   if existing_user is None:
     new_user = userRepository.create_user_social(db, user.name, user.email)
-    access_token = security.create_access_token(data={"id": new_user.id, "email": new_user.email, "role": new_user.role})
-
-    return JSONResponse(status_code=200, content={ "access_token": access_token, "token_type": "bearer", "is_new_user": True, "user_id": new_user.id })
+    user_id = new_user.id
+    is_new_user = True
   else:
-    access_token = security.create_access_token(data={"id": existing_user.id, "email": existing_user.email, "role": existing_user.role})
-    refresh_token = security.create_refresh_token(data={ "id": existing_user.id })
+    user_id = existing_user.id
+    is_new_user = False
 
-    return JSONResponse(status_code=200, content={ "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer", "is_new_user": False })
+  access_token = security.create_access_token(data={"id": user_id, "email": user.email, "role": "user"})
+  refresh_token = security.create_refresh_token(data={"id": user_id})
+
+  return JSONResponse(status_code=200, content={
+    "access_token": access_token,
+    "refresh_token": refresh_token,
+    "token_type": "bearer",
+    "is_new_user": is_new_user,
+    "user_id": user_id
+  })
         
 @auth.post("/refresh", response_model=authSchema.RefreshTokenResponse)
 def refresh_token(token: dict = Depends(security.verify_token)):

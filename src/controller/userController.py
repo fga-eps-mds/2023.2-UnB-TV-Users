@@ -71,6 +71,8 @@ async def delete_user(user_id: int, db: Session = Depends(get_db), token: dict =
 
 @user.patch("/role/{user_id}", response_model=userSchema.User)
 def update_role(user_id: int, db: Session = Depends(get_db), token: dict = Depends(security.verify_token)):
+  # Obtem email do usuario a partir de token.
+  # Verifica se o usuário é ADMIN
   user = userRepository.get_user_by_email(db, email=token['email'])
   if user.role != enumeration.UserRole.ADMIN.value:
     raise HTTPException(status_code=401, detail=errorMessages.NO_PERMISSION)
@@ -81,6 +83,7 @@ def update_role(user_id: int, db: Session = Depends(get_db), token: dict = Depen
   if not user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
   
+  # Obtem o valor da outra role e atribui a outra role para o usuario. Caso ele seja um USER => ADMIN, caso seja ADMIN => USER
   new_role = enumeration.UserRole.ADMIN.value if user.role == enumeration.UserRole.USER.value else enumeration.UserRole.USER.value
   user = userRepository.update_user_role(db, db_user=user, role=new_role)
 

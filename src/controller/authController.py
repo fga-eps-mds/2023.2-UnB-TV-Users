@@ -152,15 +152,19 @@ async def update_user_password(data: authSchema.ResetPasswordUpdate, db: Session
   if not user:
     raise HTTPException(status_code=404, detail=errorMessages.USER_NOT_FOUND)
   
+  # Valida a senha informada
   if data.password and not security.validate_password(data.password):
     raise HTTPException(status_code=400, detail=errorMessages.INVALID_PASSWORD)
 
+  # Verifica se o usuario possui um reset code. Se não possuir, a solicitação é invalida e deve ser bloqueada
   if not user.password_reset_code:
     raise HTTPException(status_code=401, detail=errorMessages.INVALID_REQUEST)
-    
+  
+  # Verifica se o código corresponde
   if data.code != user.password_reset_code:
     raise HTTPException(status_code=400, detail=errorMessages.INVALID_RESET_PASSWORD_CODE)
     
+  # Faz procedimento de hash da senha e atualiza usuario
   hashed_password = security.get_password_hash(data.password)
   updated_user = userRepository.update_password(db, user, hashed_password)
 
